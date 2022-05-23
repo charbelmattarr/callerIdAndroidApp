@@ -38,7 +38,9 @@ android {
         exclude("META-INF/*.kotlin_module")
     }
 }
-
+task wrapper(type: Wrapper){
+    gradleVersion = '7.2'
+}
 dependencies {
 
     implementation 'androidx.appcompat:appcompat:1.4.1'
