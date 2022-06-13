@@ -3,6 +3,7 @@ package com.example.calleridapplication;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,6 +26,7 @@ public class CallLogsAdapter extends ArrayAdapter<CallLogs> {
     private int mResource;
     List<CallLogs> callLogs;
     public static Boolean openedfromfrag = false;
+    static Boolean openCreate = false;
     DataBaseHelper2 dt2=null;
     DataBaseHelper dt1=null;
     // Used for the ViewHolder pattern
@@ -68,43 +70,66 @@ public class CallLogsAdapter extends ArrayAdapter<CallLogs> {
             holder = (CallLogsAdapter.ViewHolder) convertView.getTag();
         }
 
-        holder.duration.setText(calllog.getDuration() +"minutes");
+
+        if(calllog.getDuration().equals("0")) {
+            holder.duration.setText("MISSED CALL");
+        }else {
+            holder.duration.setText(calllog.getDuration() +" minutes");
+        }
         holder.time.setText(calllog.getDate());
         //if(dt1.getContactName(calllog.getCallerid()).equals("null")){
       //      holder.contactname.setText("N/A");
      //   }else{
         holder.contactname.setText(calllog.getPhoneNbre());
-        if(!calllog.getCalllogid().equals("N/A")){
+        if(!calllog.getCalllogid().equals(null)){
 
             holder.contactname.setText(dt1.getContactName(calllog.getCallerid()));
             if(dt1.getContactName(calllog.getCallerid()).equals("")){
-                holder.contactname.setText(calllog.getPhoneNbre());
+               if(!(dt1.fetchcontact(calllog.getPhoneNbre()).getContact_id()=="")){
+                   dt2.modifyContactid(calllog.getDate(),dt1.fetchcontact(calllog.getPhoneNbre()));
+                   holder.contactname.setText(dt1.getContactName(calllog.getCallerid()));
+               }else{
+               holder.contactname.setText(calllog.getPhoneNbre());
+               }
             }
 
         }
-
+//        if(dt1.getContactName(calllog.getCallerid()).equals("")){
+      //    holder.contactname.setText(calllog.getPhoneNbre());
+     //  }
         if(calllog.getSaved().equals("true")){
 
           //  holder.isSaved.setBackgroundColor(0x808080);
            // holder.isSaved.setTextColor(getContext().getResources().getColor(R.color.white));
-       //     holder.isSaved.setBackgroundColor(getContext().getResources().getColor(R.color.grey));
+          //he meshye holder.isSaved.setBackgroundColor(getContext().getResources().getColor(R.color.grey));
          //   holder.isSaved.setTextColor(Color.parseColor("#000000"));
-         //   holder.isSaved.setTextColor(0x000000);
+         //   holder.isSaved.setTextColor(Integer.parseInt("0x000000"));
             holder.isSaved.setClickable(false);
-
+            holder.isSaved.setBackgroundColor(getContext().getResources().getColor(R.color.green));
             holder.isSaved.setText("saved!");
             holder.isSaved.setEnabled(false);
           //  holder.isSaved.setTextColor(0x00000);
         }else {
-            holder.isSaved.setText("save");
+            holder.isSaved.setText("not saved in CRM");
             holder.isSaved.setEnabled(true);
+            holder.isSaved.setBackgroundColor(getContext().getResources().getColor(R.color.grey));
          //   holder.isSaved.setBackgroundColor(0x008000);
             if(dt1.getContactName(calllog.getCallerid()).equals("")){
                // holder.contactname.setText(calllog.getPhoneNbre());
-                //eza huwe empty yaane msh b crm..
+                //eza huwe empty yaane msh b crm.. so we should create the contact in crm then save the logg
 
-            holder.isSaved.setEnabled(false);
-            holder.isSaved.setClickable(false);
+            holder.isSaved.setEnabled(true);
+            holder.isSaved.setClickable(true);
+            holder.isSaved.setOnClickListener(new View.OnClickListener() {
+                    @Override
+            public void onClick(View v) {
+                        openCreateApp(getItem(position),mContext);
+                    }
+                });
+
+
+
+
         }
 
     else{
@@ -113,7 +138,7 @@ public class CallLogsAdapter extends ArrayAdapter<CallLogs> {
                 public void onClick(View v) {
                     openedfromfrag = true;
 
-                    openSaveLogPage(calllog.getCalllogid());
+                    openSaveLogPage(getItem(position).getCalllogid());
                 }
             });
 
@@ -133,8 +158,10 @@ if(calllog.getDirection().equals("true")){
         return convertView;
     }
 
-    private void openCreateApp(CallLogs c) {
-        Intent i = new Intent(getContext(),createContact.class);
+    private void openCreateApp(@NonNull CallLogs c, Context mContext) {
+        Intent i = new Intent(mContext,first.class);
+        openCreate = true;
+        Log.d("idinadapter",c.getCalllogid());
         i.putExtra("id",c.getCalllogid());
         getContext().startActivity(i);
     }
@@ -142,6 +169,7 @@ if(calllog.getDirection().equals("true")){
     private void openSaveLogPage(String id) {
 
         Intent i = new Intent(getContext(),SaveLogsPage.class);
+        openedfromfrag=true;
         i.putExtra("id",id);
         getContext().startActivity(i);
     }

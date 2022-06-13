@@ -20,6 +20,7 @@ public class DataBaseHelper2 extends SQLiteOpenHelper {
     public static final String CALLLOGS_DURATION = "CALLLOGS_DURATION";
     public static final String CALLLOGS_DATE = "CALLLOGS_DATE";
     public static final String CALLLOGS_PHONENUMBER = "CALLLOGS_PHONENUMBER";
+    public static final String aCALLLOGS_PHONENUMBER = "CALLLOGS_PHONENUMBER";
     public static final String CALLLOGS_DIRECTION = "CALLLOGS_DIRECTION";
     public static final String CALLLOGS_SAVED = "CALLLOGS_SAVED";
     public static final String CALLLOGS_CONTACTID = "CALLLOGS_CONTACTID";
@@ -109,37 +110,37 @@ public class DataBaseHelper2 extends SQLiteOpenHelper {
         return returnList;
     }
 
-public void modifySaved(CallLogs c){
-    String queryString = "  UPDATE "+CALLLOGS_TABLE+" SET "+CALLLOGS_SAVED+" = \"true\" WHERE "+CALLLOGS_ID+" = "+c.getCalllogid()+" ;" ;
+public void modifySaved(String time){
+    String queryString = "UPDATE "+CALLLOGS_TABLE+" SET "+CALLLOGS_SAVED+" = \"true\" WHERE "+CALLLOGS_DATE+" =\""+time +"\" ;" ;
 
-    SQLiteDatabase db = this.getReadableDatabase();
-    CallLogs cl = null;
+    SQLiteDatabase db = this.getWritableDatabase();
+
     Cursor cursor = db.rawQuery(queryString,null) ;
         cursor.moveToFirst();
 
             cursor.close();
 
-
+       Log.d("modifying",time);
 
 
 }
     public void modifyContactid(String date,ContactModel c){
-        String queryString = "  UPDATE "+CALLLOGS_TABLE+" SET "+CALLLOGS_CONTACTID+" = \""+
-            c.getContact_id()    +"\" WHERE "+CALLLOGS_DATE+" = "+date+" ;" ;
+        String queryString = "UPDATE "+CALLLOGS_TABLE+" SET "+CALLLOGS_CONTACTID+" = \""+
+            c.getContact_id()+"\" WHERE "+CALLLOGS_DATE+" = \""+date+"\" ;" ;
 
-        SQLiteDatabase db = this.getReadableDatabase();
+        SQLiteDatabase db = this.getWritableDatabase();
         CallLogs cl = null;
         Cursor cursor = db.rawQuery(queryString,null) ;
         cursor.moveToFirst();
-
+        Log.d("modifycontactid","mafroud updated");
         cursor.close();
-
+        db.close();
 
 
 
     }
 public CallLogs getLoginfo(String id){
-    String queryString = "SELECT * FROM " + CALLLOGS_TABLE + " WHERE "+ CALLLOGS_ID + " = "+id+"";
+    String queryString = "SELECT * FROM " + CALLLOGS_TABLE + " WHERE "+ CALLLOGS_ID + " = \""+id+"\"";
     SQLiteDatabase db = this.getReadableDatabase();
     CallLogs cl = null;
     try (Cursor cursor = db.rawQuery(queryString,null)) {
@@ -164,6 +165,8 @@ public CallLogs getLoginfo(String id){
             Log.d("contactttt",cursor.toString());
             cursor.close();
 
+        }else{
+            Log.d("logsnotfound","not found");
         }
     }catch(Exception e){
         Log.e("error",e.toString());
@@ -265,23 +268,60 @@ public CallLogs getLoginfo(String id){
 
 
  */
+public List<CallLogs> fetchCalllogsByContactid(String c){
 
+
+
+    List<CallLogs> returnList = new ArrayList<>();
+    String queryString = "SELECT * FROM " +CALLLOGS_TABLE +" WHERE "+CALLLOGS_CONTACTID +" = \""+c.toString().trim()+"\"";
+    SQLiteDatabase db = this.getReadableDatabase();
+    int i =0;
+    try (Cursor cursor = db.rawQuery(queryString,null)) {
+        if (cursor.moveToFirst()) {
+            i++;
+            do {
+                String calllogsID = cursor.getString(0);
+                String duration = cursor.getString(1);
+                String date = cursor.getString(2);
+                String phonenumber = cursor.getString(3);
+                String direction = cursor.getString(4);
+                String saved = cursor.getString(5);
+                String callerid =cursor.getString(6);
+
+                //  public CallLogs(String duration, String direction, String date, String phoneNbre, int saved, String callername) {
+                CallLogs c1 = new CallLogs(calllogsID,duration,direction,date,phonenumber,saved,callerid);
+Log.d("calllog"+i,c1.toString());
+                returnList.add(c1);
+
+            } while (cursor.moveToNext());
+            cursor.close();
+
+        }}catch(Exception e){
+        Log.e("error",e.toString());
+
+
+    }
+
+    return returnList;
+
+}
     public CallLogs fetchByDate(String date1){
 
        // String queryString = "SELECT * FROM " + CALLLOGS_TABLE + " WHERE "+ CALLLOGS_DATE + " = \" "+date1+"\"";
-        String queryString = "SELECT * FROM  CALLLOGS_TABLE  WHERE  CALLLOGS_DATE  = \""+date1+"\"";
+        Log.d("date1ttofetch",date1);
+        String queryString = "SELECT * FROM  CALLLOGS_TABLE  WHERE  CALLLOGS_DATE  =\""+date1+"\"";
         SQLiteDatabase db = this.getReadableDatabase();
         CallLogs cl = null;
         try (Cursor cursor = db.rawQuery(queryString,null)) {
             cursor.moveToFirst();
+          //  Log.d("cursor...",c);
             if (cursor.moveToFirst()) {
                 //if there are result i will loop into the results
 
                 Log.d("contact",">>>>>fouund");
 
                  String callogID = cursor.getString(0);
-
-                String duration = cursor.getString(1);
+                 String duration = cursor.getString(1);
                 String date = cursor.getString(2);
                 String phonenumber = cursor.getString(3);
                 String direction = cursor.getString(4);
@@ -289,11 +329,14 @@ public CallLogs getLoginfo(String id){
                 String callerid =cursor.getString(6);
                 //  public CallLogs(String duration, String direction, String date, String phoneNbre, int saved, String callername) {
                 cl = new CallLogs(callogID,duration,direction,date,phonenumber,saved,callerid);
+
                 Log.d("logfound",cl.toString());
                 //c = new ContactModel(contactID,contactfname,contactlname,contactcompany,contactjob,contactemail,contactmobilephone);
                 Log.d("contactttt",cursor.toString());
                 cursor.close();
 
+           }else{
+                Log.d("bydate","calllogs not found");
             }
         }catch(Exception e){
             Log.e("error",e.toString());

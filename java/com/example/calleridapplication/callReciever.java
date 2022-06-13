@@ -36,6 +36,7 @@ public class callReciever extends BroadcastReceiver {
    static String number="";
   public Context ctx;
   int opened =0;
+  public static String numbertofetch;
   public static String numbertocreate="bonjour";
   public static Boolean openedOnNotFound = false;
   public static boolean openCreate=false;
@@ -80,14 +81,19 @@ public class callReciever extends BroadcastReceiver {
 
             } else if (state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
 
-                addLogToDB2(context);
+
+                if(!number.isEmpty() && number != null){
+                    numbertofetch = number;
+                }
+Log.d("logs","we will be adding the logs to database later");
+             //   addLogToDB2(context);
                 Log.d("steps","call ended");
-                if(Window.found){
+                if(Window.found || Window4Api.found){
                     Log.d("steps","ctct found");
                     openpopUpService( context,number);
 
                 }else{
-                    Log.d("steps","cntact not found");
+                    Log.d("steps","cn  tact not found");
                          numbertocreate = number;
                      openAppTocreate(context,number);
 
@@ -106,6 +112,7 @@ public class callReciever extends BroadcastReceiver {
                 number = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
 
        if(!number.isEmpty() && number != null){
+           numbertofetch = number;
            System.out.println("The Caller Number is Ringing:  " + number);
            showToast(context, "Incoming call... Number is: " + number);
               //  openBottomFragment(context,number);
@@ -149,7 +156,7 @@ public class callReciever extends BroadcastReceiver {
                     String direction;
                     SimpleDateFormat formatter = new SimpleDateFormat(
                             "MM/dd/yyyy HH:mm:ss");
-                    String dateString = formatter.format(new Date(Long
+                   String dateString = formatter.format(new Date(Long
                             .parseLong(callDate)));
                     String stringType;
                     try{
@@ -194,7 +201,7 @@ public class callReciever extends BroadcastReceiver {
                     String contactid="N/A";
 
                     contactid = dt.getContactIdByPhone(phNumber);
-
+                        Log.d("dateString",dateString);
                     CallLogs cl =new CallLogs(callDuration,String.valueOf(directionBoolean),dateString,phNumber,"false",contactid);
                     if(dt2.addOne(cl)){
                         showToast(ctx,"success");
@@ -496,11 +503,17 @@ public boolean check_if_number_isEmpty(String nbre){
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     ctx.startForegroundService(new Intent(ctx, ForegroundService.class));
                 } else {
-                    ctx.startService(new Intent(ctx, ForegroundService.class));
+
+                 //   ctx.startService(new Intent(ctx, ForegroundService.class));
+                    Intent i = new Intent(ctx,Window4Api.class);
+                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    ctx.startActivity(i);
                 }
             }
         }else{
-           ctx.startService(new Intent(ctx, ForegroundService.class));
+            Intent i = new Intent(ctx,Window4Api.class);
+            ctx.startActivity(i);
+         //  ctx.startService(new Intent(ctx, ForegroundService.class));
         }
     }
 

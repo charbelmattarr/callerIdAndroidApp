@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 
 import com.example.CallerIdApplication.R;
@@ -29,6 +30,7 @@ public class Contacts extends Fragment {
    ListView contactsListView;
    List contactsList;
    DataBaseHelper db;
+   ImageView next;
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;

@@ -117,9 +117,11 @@ public class signin_fragment extends Fragment {
             @Override
             public void onAccountLoaded(@Nullable IAccount activeAccount){
                 updateUI(activeAccount);
+                if(!is_signedin){
                 mSingleAccountApp.acquireTokenSilentAsync(SCOPES, AUTHORITY, getAuthSilentCallback());
                 is_signedin=true;
                 newSign=true;
+                }
                 //  openBrowserTabActivity();
 
             }
@@ -293,7 +295,7 @@ public class signin_fragment extends Fragment {
         });
     }
     private  void displayGraphResult(@NonNull final JsonObject graphResponse) {
-
+        is_signedin=true;
 
         getActivity().runOnUiThread(new Runnable() {
             @Override
@@ -311,7 +313,7 @@ public class signin_fragment extends Fragment {
         if(!graphResponse.equals(null)){
             JsonObject owner=graphResponse.getAsJsonObject("owner");
             JsonObject user = owner.getAsJsonObject("user");
-            displayName = user.get("displayName").toString();
+            displayName = user.get("displayName").toString().replaceAll("\"","").trim();
             Email = user.get("email").toString().replaceAll("\"","").trim();
             if(!displayName.isEmpty() ){
                 getActivity().runOnUiThread(new Runnable() {
@@ -403,6 +405,7 @@ public class signin_fragment extends Fragment {
                     return;
                 }
                 mSingleAccountApp.signIn(getActivity(), null, SCOPES, getAuthInteractiveCallback());
+
                 newSign=true;
 
             }

@@ -131,6 +131,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="fetch Emails"
+            android:visibility="gone"
             android:backgroundTint="@color/javistaOrange"
             android:id="@+id/fetchEmails1"
             android:layout_gravity="center"/>
