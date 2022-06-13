@@ -52,7 +52,7 @@ import okhttp3.Response;
  * Use the {@link createContact#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class createContact extends Fragment {
+public class createContact2 extends Fragment {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -61,6 +61,7 @@ public class createContact extends Fragment {
     public static String contactid = null;
     String URLline;
     CallLogs cl2=null;
+    String ids;
     static Boolean openFromCreate = false;
     public static ContactModel contactfound = null;
     public String APIURL ="https://calleridcrmapi.azure-api.net/test/contacts/";
@@ -77,7 +78,7 @@ public class createContact extends Fragment {
     private String mParam1;
     private String mParam2;
 
-    public createContact() {
+    public createContact2() {
         // Required empty public constructor
     }
 
@@ -90,40 +91,43 @@ public class createContact extends Fragment {
      * //@return A new instance of fragment createContact.
      */
     // TODO: Rename and change types and number of parameters
-    public static createContact newInstance() {
-        createContact fragment = new createContact();
-     //   Bundle args = new Bundle();
-    //   args.putString(ARG_PARAM1, param1);
-    //    args.putString(ARG_PARAM2, param2);
-     //   fragment.setArguments(args);
+    public static createContact2 newInstance(String ids) {
+        createContact2 fragment = new createContact2();
+          Bundle args = new Bundle();
+           args.putString(ARG_PARAM1,ids);
+           Log.d("idincreate2",ids);
+        Log.d("idincreate2",ARG_PARAM1);
+        //    args.putString(ARG_PARAM2, param2);
+           fragment.setArguments(args);
         return fragment;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-     //   if (getArguments() != null) {
-         //   mParam1 = getArguments().getString(ARG_PARAM1);
-         //   mParam2 = getArguments().getString(ARG_PARAM2);
-     //   }
+         if (getArguments() != null) {
+           mParam1 = getArguments().getString(ARG_PARAM1);
+           Log.d("mParams",mParam1);
+        //   mParam2 = getArguments().getString(ARG_PARAM2);
+           }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view= inflater.inflate(layout.createcontact, container, false);
+        View view= inflater.inflate(layout.fragment_create_contact2, container, false);
         //EditText ETfirstname,ETlastname,ETcompany,ETjob,ETemail,ETphonenumber;
-        ETfirstname = view.findViewById(id.cr_firstname);
-        ETlastname = view.findViewById(id.cr_lastname);
-        ETcompany = view.findViewById(id.cr_company);
-        ETjob = view.findViewById(id.cr_job);
-        ETemail = view.findViewById(id.cr_email);
-        ETphonenumber= view.findViewById(id.cr_phonenbre);
-        progressbar=view.findViewById(id.progressBar1);
-        btnCreateContact = view.findViewById(id.createContact);
-        createStatus = view.findViewById(id.createStatus);
-        gotoSaveLogs = view.findViewById(id.gotoSaveLogs);
+        ETfirstname = view.findViewById(id.cr_firstname2);
+        ETlastname = view.findViewById(id.cr_lastname2);
+        ETcompany = view.findViewById(id.cr_company2);
+        ETjob = view.findViewById(id.cr_job2);
+        ETemail = view.findViewById(id.cr_email2);
+        ETphonenumber= view.findViewById(id.cr_phonenbre2);
+       // progressbar=view.findViewById(id.progressBar12);
+        btnCreateContact = view.findViewById(id.createContact2);
+        createStatus = view.findViewById(id.createStatus2);
+        gotoSaveLogs = view.findViewById(id.gotoSaveLogs2);
         createStatus.setText("");
         ETfirstname.setText("");
         ETlastname.setText("");
@@ -135,47 +139,36 @@ public class createContact extends Fragment {
         dataBaseHelper = new DataBaseHelper(getActivity().getApplicationContext());
         dataBaseHelper2 = new DataBaseHelper2(getActivity().getApplicationContext());
         gotoSaveLogs.setVisibility(View.GONE);
-        if(!Window.found){
-            Log.d("steps","opened, setting stuff");
-            ETphonenumber.setEnabled(false);
-            ETphonenumber.setClickable(false);
-            ETphonenumber.setText(callReciever.number);
-            first.firsttoCreate=false;
-            // gotoSaveLogs.setVisibility(View.VISIBLE);
-            // gotoSaveLogs.setEnabled(false);
-        }
+
+        Log.d("ids",mParam1);
+
+        cl2=dataBaseHelper2.getLoginfo(mParam1);
+        Log.d("cl2:",cl2.toString());
+        ETphonenumber.setText(cl2.getPhoneNbre());
+        ETphonenumber.setEnabled(false);
+        ETphonenumber.setClickable(false);
         btnCreateContact.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                showProgressBar();
                 firstname=ETfirstname.getText().toString().trim();
-               lastname=ETlastname.getText().toString().trim();
+                lastname=ETlastname.getText().toString().trim();
                 company=ETcompany.getText().toString().trim();
                 job=ETjob.getText().toString().trim();
                 email=ETemail.getText().toString().trim();
-
-               if(Window.found){
-                    Log.d("steps","opened, setting stuff");
-                    ETphonenumber.setEnabled(false);
-                    ETphonenumber.setClickable(false);
-                    ETphonenumber.setText(callReciever.number);
-                    first.firsttoCreate=false;
-                   // gotoSaveLogs.setVisibility(View.VISIBLE);
-                   // gotoSaveLogs.setEnabled(false);
-                }
                 mobilephone=ETphonenumber.getText().toString().trim();
-               mobilephone =callReciever.number;
-                  if(firstname.isEmpty() || lastname.isEmpty() || mobilephone.isEmpty()){
 
-                            Toast.makeText(getActivity(),"make sure that all required fields are there!",Toast.LENGTH_LONG).show();
-                         return;
-                              }
-                   //this one is using volley
+                if(firstname.isEmpty() || lastname.isEmpty() || mobilephone.isEmpty()){
+
+                    Toast.makeText(getActivity(),"make sure that all required fields are there!",Toast.LENGTH_LONG).show();
+                    return;
+                }
+                //this one is using volley
                 //   createContactinCRM1(firstname,lastname,company,job,email,mobilephone);
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        progressbar.setActivated(true);
-                        progressbar.setVisibility(View.VISIBLE);
+
                     /*    for(int i=0;i<1000;i++){
                              createContactinCRM3("firstname","lastname","company","job","email","mobilephone");
                         }*/
@@ -192,7 +185,7 @@ public class createContact extends Fragment {
         gotoSaveLogs.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-               gotosaveLogsPage();
+                gotosaveLogsPage();
             }
         });
 
@@ -208,7 +201,7 @@ public class createContact extends Fragment {
             public void run() {
                 openFromCreate=true;
                 Intent i = new Intent(getActivity(),SaveLogsPage.class);
-
+                i.putExtra("id",mParam1);
                 contactid = contactfound.getContact_id();
                 Log.d("ids",contactfound.getContact_id());
                 getActivity().startActivity(i);
@@ -260,12 +253,12 @@ public class createContact extends Fragment {
                             //  Toast.makeText(getActivity(),"sucess",Toast.LENGTH_LONG).show();
 
                             Log.e("okhttp2",response.toString());
-                getActivity().runOnUiThread(new Runnable() {
-                       @Override
-                    public void run() {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
 
 
-                        }
+                                }
                             });
                             Log.d("create:","success");
                         }
@@ -299,9 +292,10 @@ public class createContact extends Fragment {
                 OkHttpClient client = new OkHttpClient().newBuilder()
                         .build();
                 MediaType mediaType = MediaType.parse("application/json");
-                RequestBody body = RequestBody.create(mediaType, "{\r\n\"firstname\": \""+firstname.trim()+"\"\r\n," +
-                                                                         "\r\n \"lastname\": \""+lastname.trim()+"\"\r\n," +
-                                                                          "\r\n    \"cr051_companyname\": \""+company.trim()+"\"\r\n," +
+                RequestBody body = RequestBody.create(mediaType, "{" +
+                        "\r\n\"firstname\": \""+firstname.trim()+"\"\r\n," +
+                        "\r\n \"lastname\": \""+lastname.trim()+"\"\r\n," +
+                        "\r\n    \"cr051_companyname\": \""+company.trim()+"\"\r\n," +
                         "\r\n    \"emailaddress1\": \""+email.trim()+"\"\r\n," +
                         "\r\n    \"jobtitle\": \""+job.trim()+"\"\r\n," +
                         "\r\n    \"mobilephone\": \""+mobilephone.trim()+"\"\r\n}");
@@ -328,6 +322,7 @@ public class createContact extends Fragment {
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
+
                                     progressbar.setVisibility(View.INVISIBLE);
                                     ETfirstname.setText("");
                                     ETlastname.setText("");
@@ -343,27 +338,28 @@ public class createContact extends Fragment {
 
                             throw new IOException("Unexpected code " + response);
                         }else{
-                          //  Toast.makeText(getActivity(),"sucess",Toast.LENGTH_LONG).show();
+                            //  Toast.makeText(getActivity(),"sucess",Toast.LENGTH_LONG).show();
 
                             Log.e("okhttp2",response.toString());
-                    getActivity().runOnUiThread(new Runnable() {
-                     @Override
-                      public void run() {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
 
-                         progressbar.setVisibility(View.INVISIBLE);
-                         ETfirstname.setText("");
-                          ETlastname.setText("");
-        ETcompany.setText("");
-        ETjob.setText("");
-        ETemail.setText("");
-        ETphonenumber.setText("");
-        createStatus.setText("added success!");
-        addthisContactToDB(mobilephone);
+                                 //   progressbar.setVisibility(View.INVISIBLE);
+                                    ETfirstname.setText("");
+                                    ETlastname.setText("");
+                                    ETcompany.setText("");
+                                    ETjob.setText("");
+                                    ETemail.setText("");
+                                    ETphonenumber.setText("");
+                                    createStatus.setText("added success!");
+                                    hideProgressBar();
+                                    addthisContactToDB(mobilephone);
 
-    }
-});
+                                }
+                            });
 
-                        Log.d("create:","success");
+                            Log.d("create:","success");
                         }
 
                         // you code to handle response
@@ -381,9 +377,9 @@ public class createContact extends Fragment {
 
 
         Toast.makeText(getActivity(), "adding contact to database....", Toast.LENGTH_LONG).show();
-      //  URLline = "https://calleridfunction20220524032337.azurewebsites.net/api/ConnecttoD365?email="+mobilephone+"";
+        //  URLline = "https://calleridfunction20220524032337.azurewebsites.net/api/ConnecttoD365?email="+mobilephone+"";
         //    URLline ="https://calleridfunction20220524032337.azurewebsites.net/api/ConnecttoD365?email=70753661";
-URLline= "https://calleridcrmapi.azure-api.net/contacts?$filter=(mobilephone eq '"+mobilephone+"')";
+        URLline= "https://calleridcrmapi.azure-api.net/contacts?$filter=(mobilephone eq '"+mobilephone+"')";
         StringRequest stringRequest = new StringRequest(Request.Method.GET,
                 URLline,
                 new com.android.volley.Response.Listener<String>() {
@@ -417,13 +413,7 @@ URLline= "https://calleridcrmapi.azure-api.net/contacts?$filter=(mobilephone eq 
 
         requestQueue.add(stringRequest);
 
-
-
-
-
-
-
-    }
+           }
 
     private void parsejsonContact(String response) {
 
@@ -435,25 +425,32 @@ URLline= "https://calleridcrmapi.azure-api.net/contacts?$filter=(mobilephone eq 
             //for (int i = 0; i < callerid.length(); i++) {
             //    String name,JobTitle,Company,etag,contactid;
             JSONObject dataobj = callerid.getJSONObject(0);
-           String name =dataobj.getString("firstname");
-           String lname = dataobj.getString("lastname");
-           String JobTitle=dataobj.getString("jobtitle");
-           String Company = dataobj.getString("cr051_companyname");
-           String contactid = dataobj.getString("contactid");
+            String name =dataobj.getString("firstname");
+            String lname = dataobj.getString("lastname");
+            String JobTitle=dataobj.getString("jobtitle");
+            String Company = dataobj.getString("cr051_companyname");
+            String contactid = dataobj.getString("contactid");
             //    etag = dataobj.getString("@odata.etag");
             email = dataobj.getString("emailaddress1");
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    if(callReciever.openedOnNotFound){
+                    contactfound = new ContactModel(contactid,name,lname,Company,JobTitle,email,mobilephone);
+                    if(dataBaseHelper.addOne(contactfound)) {
+                        dataBaseHelper2.modifyContactid(cl2.getDate(),contactfound);
+                        Log.d("should be modified","mpdified");
+                        Log.d("cl2",cl2.toString());
                         callReciever.openedOnNotFound = false;
                         gotoSaveLogs.setEnabled(true);
                         gotoSaveLogs.setVisibility(View.VISIBLE);
-
+                        Log.d("page","should go back");
+                    }else {
+                        Log.d("EERRROOOR","added to DATABASE");
                     }
-                    contactfound = new ContactModel(contactid,lname,name,Company,JobTitle,email,mobilephone);
-                    dataBaseHelper.addOne(contactfound);
-                    fetchLogs(contactfound);
+
+
+
+                  //  fetchLogs(contactfound); he hatjblna ekher whde bas thatswhy ha aamela abel
                 }
             });
 
@@ -484,7 +481,7 @@ URLline= "https://calleridcrmapi.azure-api.net/contacts?$filter=(mobilephone eq 
                     Boolean directionBoolean = true;
                     String phNumber = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.NUMBER));
                     String callDate = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.DATE));
-                   String callDuration = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.DURATION));
+                    String callDuration = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.DURATION));
                     Date dateFormat= new Date(Long.valueOf(callDate));
                     String callDayTimes = String.valueOf(dateFormat);
                     //DateTimeFormatter dt = new DateTimeFormatterBuilder(dateFormat);
@@ -556,14 +553,14 @@ URLline= "https://calleridcrmapi.azure-api.net/contacts?$filter=(mobilephone eq 
                         default:
                             break;
                     }*/
-                   // cl2 = dataBaseHelper2.fetchByDate(dateString);
+                    // cl2 = dataBaseHelper2.fetchByDate(dateString);
                     Log.d("modifying","....");
                     Log.d("modifying ",cntct.toString());
                     if(cntct == null){
 
                     }
-                //    dataBaseHelper2.modifyContactid(dateString,cntct);
-Log.d("modifying","linking the referenced call log into a contact created ");
+                    //    dataBaseHelper2.modifyContactid(dateString,cntct);
+                    Log.d("modifying","linking the referenced call log into a contact created ");
                 }
             }
             c.close();
@@ -573,83 +570,83 @@ Log.d("modifying","linking the referenced call log into a contact created ");
 
     private void createContactinCRM1(String firstname, String lastname, String company, String job, String email, String mobilephone) {
 
-      getActivity().runOnUiThread(new Runnable() {
-          @Override
-          public void run() {
-
-
-        RequestQueue queue = Volley.newRequestQueue(getActivity());
-
-        // on below line we are calling a string
-        // request method to post the data to our API
-        // in this we are calling a post method.
-        StringRequest request = new StringRequest(Request.Method.POST, APIURL, new com.android.volley.Response.Listener<String>() {
+        getActivity().runOnUiThread(new Runnable() {
             @Override
-            public void onResponse(String response) {
-                // inside on response method we are
-                // hiding our progress bar
-                // and setting data to edit text as empty
-                ETfirstname.setText("");
-                ETlastname.setText("");
-                ETcompany.setText("");
-                ETjob.setText("");
-                ETemail.setText("");
-                ETphonenumber.setText("");
-                // on below line we are displaying a success toast message.
-                Toast.makeText(getContext(), "Data added to API", Toast.LENGTH_SHORT).show();
-                // on below line we are parsing the response
-                // to json object to extract data from it.
+            public void run() {
+
+
+                RequestQueue queue = Volley.newRequestQueue(getActivity());
+
+                // on below line we are calling a string
+                // request method to post the data to our API
+                // in this we are calling a post method.
+                StringRequest request = new StringRequest(Request.Method.POST, APIURL, new com.android.volley.Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        // inside on response method we are
+                        // hiding our progress bar
+                        // and setting data to edit text as empty
+                        ETfirstname.setText("");
+                        ETlastname.setText("");
+                        ETcompany.setText("");
+                        ETjob.setText("");
+                        ETemail.setText("");
+                        ETphonenumber.setText("");
+                        // on below line we are displaying a success toast message.
+                        Toast.makeText(getContext(), "Data added to API", Toast.LENGTH_SHORT).show();
+                        // on below line we are parsing the response
+                        // to json object to extract data from it.
+
+                    }
+                }, new com.android.volley.Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // method to handle errors.
+                        Toast.makeText(getContext(), "Fail to get response = " + error, Toast.LENGTH_LONG).show();
+                        Log.e("creating error",error.getStackTrace().toString());
+                    }
+                }) {
+
+                    /**
+                     * Passing some request headers
+                     */
+                    @Override
+                    public Map<String, String> getHeaders() throws AuthFailureError {
+                        HashMap<String, String> headers = new HashMap<String, String>();
+                        headers.put("Content-Type", "application/json");
+                        headers.put("OData-MaxVersion", "4.0");
+                        headers.put("OData-Version", "4.0");
+                        //  return headers;
+                        return headers;
+                    }
+
+                    @Override
+                    protected Map<String, String> getParams() throws AuthFailureError {
+                        //super.getParams();
+                        Map<String, String> params = new HashMap<>();
+
+                        // on below line we are passing our key
+                        // and value pair to our parameters.
+                        params.put("firstname", firstname);
+                        params.put("lastname", lastname);
+                        params.put("cr051_companyname", company);
+                        params.put("jobtitle", job);
+                        params.put("emailaddress1", email);
+                        params.put("mobilephone", mobilephone);
+                        return params;
+
+                        // at last we are
+                        // returning our params.
+                        //   return params;
+                    }
+
+                };
+                // below line is to make
+                // a json object request.
+                queue.add(request);
 
             }
-        }, new com.android.volley.Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                // method to handle errors.
-                Toast.makeText(getContext(), "Fail to get response = " + error, Toast.LENGTH_LONG).show();
-                Log.e("creating error",error.getStackTrace().toString());
-            }
-        }) {
-
-            /**
-             * Passing some request headers
-             */
-            @Override
-            public Map<String, String> getHeaders() throws AuthFailureError {
-                HashMap<String, String> headers = new HashMap<String, String>();
-                headers.put("Content-Type", "application/json");
-                headers.put("OData-MaxVersion", "4.0");
-                headers.put("OData-Version", "4.0");
-                //  return headers;
-                return headers;
-            }
-
-            @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
-                 //super.getParams();
-                Map<String, String> params = new HashMap<>();
-
-                // on below line we are passing our key
-                // and value pair to our parameters.
-                params.put("firstname", firstname);
-                params.put("lastname", lastname);
-                params.put("cr051_companyname", company);
-                params.put("jobtitle", job);
-                params.put("emailaddress1", email);
-                params.put("mobilephone", mobilephone);
-                  return params;
-
-                // at last we are
-                // returning our params.
-                //   return params;
-            }
-
-        };
-        // below line is to make
-        // a json object request.
-        queue.add(request);
-
-          }
-      });
+        });
     }
 
 
@@ -715,7 +712,27 @@ Log.d("modifying","linking the referenced call log into a contact created ");
             e.printStackTrace();
         }
     }
+
+    private void showProgressBar() {
+
+        getActivity().findViewById(R.id.progressBar12)
+                .setVisibility(View.VISIBLE);
+           getActivity().findViewById(id.framCreateContact2)
+                 .setVisibility(View.GONE);
+
+    }
+
+    private void hideProgressBar() {
+
+        getActivity().findViewById(R.id.progressBar12)
+                .setVisibility(View.GONE);
+            getActivity().findViewById(id.framCreateContact2)
+                 .setVisibility(View.VISIBLE);
+    }
+
 }
+
+
 /*
 * {
             @Override

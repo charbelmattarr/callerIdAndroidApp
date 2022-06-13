@@ -77,6 +77,7 @@ DataBaseHelper dt;
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_call_logs, container, false);
+        fetchLogs();
         dt2 =  new DataBaseHelper2(getActivity().getApplicationContext());
         dt = new DataBaseHelper(getActivity().getApplicationContext());
       //  fetchLogs();
@@ -154,7 +155,7 @@ DataBaseHelper dt;
                         Log.d("direction",e.toString());
 
                     }
-                    @SuppressLint("Range") int dircode = Integer.parseInt(c.getString(c.getColumnIndex(CallLog.Calls.TYPE)));
+                 //   @SuppressLint("Range") int dircode = Integer.parseInt(c.getString(c.getColumnIndex(CallLog.Calls.TYPE)));
 
 
                    /* switch (Integer.parseInt(c.getString(c.getColumnIndexOrThrow(CallLog.Calls.TYPE)))) {
@@ -185,6 +186,7 @@ String contactid="N/A";
 
                     CallLogs cl =new CallLogs(callDuration,String.valueOf(directionBoolean),dateString,phNumber,"false",contactid);
                          dt2.addOne(cl);
+                         Toast.makeText(getActivity(),cl.toString(),Toast.LENGTH_LONG).show();
                 }
             }
             c.close();

@@ -3,7 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.CallerIdApplication">
 
-
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
@@ -12,7 +11,8 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -23,20 +23,33 @@
         android:usesCleartextTraffic="true"
         tools:replace="android:theme">
         <activity
-            android:name="com.example.calleridapplication.CallingPage"
+            android:name="com.example.calleridapplication.Window4Api"
             android:exported="true"
-            android:theme="@style/AppTheme.CustomTheme"
-            android:enabled="true"/>
+            android:enabled="true"
+            />
+       <!-- <activity
+            android:name="com.example.calleridapplication.EmailsAdapter2"
+            android:exported="false" />-->
+        <activity
+            android:name="com.example.calleridapplication.deletePopUp"
+            android:exported="false" />
+        <activity
+            android:name="com.example.calleridapplication.CallingPage"
+            android:enabled="true"
+            android:exported="true"
+            android:theme="@style/AppTheme.CustomTheme" />
         <activity
             android:name="com.example.calleridapplication.Callerinfoactivity"
             android:exported="true" />
         <activity
             android:name="com.example.calleridapplication.SaveLogsPage"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="true" />
+
         <service
             android:name="com.example.calleridapplication.ForegroundService"
             android:enabled="true"
-            android:exported="true"/>
+            android:exported="true" />
         <!--
  <activity
             android:name="com.example.calleridapplication.Callerinfoactivity"
@@ -50,6 +63,7 @@
 
         </activity>
         -->
+        <activity android:name="com.example.calleridapplication.relatedCallLogs" />
         <activity
             android:name="com.example.calleridapplication.first"
             android:exported="true">
@@ -86,6 +100,7 @@
                 <action android:name="android.intent.action.NEW_OUTGOING_CALL" />
             </intent-filter>
         </receiver>
+
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />

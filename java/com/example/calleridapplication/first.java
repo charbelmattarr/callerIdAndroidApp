@@ -93,7 +93,7 @@ public class first extends AppCompatActivity implements NavigationView.OnNavigat
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.browsertab_activity);
-
+        dataBaseHelper = new DataBaseHelper(first.this);
         initializeUI();
         checkOverlayPermission();
 
@@ -143,13 +143,27 @@ public class first extends AppCompatActivity implements NavigationView.OnNavigat
             fetchLogs();
         }
 
-        if(callReciever.openCreate){
-            Log.d("using","openCreate");
 
-              openCreateContactsFragment();
+        if(CallLogsAdapter.openCreate){
+            Bundle bundle=first.this.getIntent().getExtras();
+           String ids = bundle.getString("id").trim();
+            Log.d("idinfirst",ids);
+
+            openCreateContactsFragment2(ids);
 
         }
-        openCallLogsFragment();
+if(ContactsAdapter.openContactFrag){
+
+    openContactFragment();
+    ContactsAdapter.openContactFrag=false;
+      //  if(callReciever.openCreate){
+      //      Log.d("using","openCreate");
+
+     //         openCreateContactsFragment();
+
+       }
+       // openCallLogsFragment();
+        //  openSignInFragment();
         if(com.example.calleridapplication.Window.found){
             Log.d("using","window.found");
             Window.found=false;
@@ -202,22 +216,24 @@ if(callReciever.openedOnNotFound){
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
      switch(item.getItemId()){
-         case R.id.mainFragment:
-             openMainFragment();
-             break;
+      //   case R.id.mainFragment:
+      ///       openMainFragment();
+       //      break;
          case R.id.nav_signin:
              openSignInFragment();
              break;
-         case R.id.log_calls:
-             fetchLogs();
-             break;
+     //    case R.id.log_calls:
+     //        fetchLogs();
+     //        break;
       case R.id.nav_contacts:
             openContactFragment();
            break;
          case R.id.nav_createContacts:
              openCreateContactsFragment();
              break;
-
+         case R.id.nav_updateDB:
+             fetchAllContacts();
+             break;
          case R.id.phonecalls:
              openCallLogsFragment();
              break;
@@ -240,7 +256,11 @@ if(callReciever.openedOnNotFound){
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,frag).commit();
         navigationView.setCheckedItem(R.id.nav_createContacts);
     }
-
+    private  void openCreateContactsFragment2(String id) {
+        createContact2 frag = createContact2.newInstance(id);
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,frag).commit();
+        navigationView.setCheckedItem(R.id.nav_createContacts);
+    }
     private void openContactFragment() {
         Contacts frag = Contacts.newInstance();
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,frag).commit();
@@ -267,7 +287,7 @@ if(callReciever.openedOnNotFound){
     private void openMainFragment() {
         MainFragment frag = MainFragment.newInstance();
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,frag).commit();
-        navigationView.setCheckedItem(R.id.mainFragment);
+   //     navigationView.setCheckedItem(R.id.mainFragment);
 
     }
 
@@ -421,8 +441,10 @@ if(callReciever.openedOnNotFound){
                 //    etag = dataobj.getString("@odata.etag");
                 email = dataobj.getString("emailaddress1");
                 mobilephone = dataobj.getString("mobilephone");
-                ContactModel c = new ContactModel(contactid,lastname,firstname,company,jobTitle,email,mobilephone);
-                dataBaseHelper.addOne(c);
+
+                ContactModel c11 = new ContactModel(contactid,lastname,firstname,company,jobTitle,email,mobilephone);
+                Log.d("contact model:",c11.toString());
+                dataBaseHelper.addOne(c11);
             }
 
         } catch (JSONException e) {
