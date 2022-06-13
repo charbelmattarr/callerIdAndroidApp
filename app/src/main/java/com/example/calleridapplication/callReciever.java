@@ -1,6 +1,7 @@
 package com.example.calleridapplication;
 
 import android.animation.Keyframe;
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
@@ -13,6 +14,7 @@ import android.provider.Settings;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -34,11 +36,18 @@ public class callReciever extends BroadcastReceiver {
    static String number="";
   public Context ctx;
   int opened =0;
+  public static String numbertofetch;
+  public static String numbertocreate="bonjour";
+  public static Boolean openedOnNotFound = false;
   public static boolean openCreate=false;
   // Dialog dialog;
+    DataBaseHelper dt = null;
+    DataBaseHelper2 dt2 = null;
     @Override
     public void onReceive(Context context, Intent intent) {
          ctx = context;
+         dt = new DataBaseHelper(context);
+        dt2 = new DataBaseHelper2(context);
         if (intent.getAction().equals("android.intent.action.PHONE_STATE")) {
 
             String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
@@ -69,16 +78,26 @@ public class callReciever extends BroadcastReceiver {
                 //   System.out.println("The Caller Number is offhook: " + number);
                 //   showToast(context, "Call started... The Number is: " + number);
                 //showToast(context, "Call started...");
-if(!Window.found){
-    Intent i = new Intent(context,first.class);
-    openCreate = true;
-    context.startActivity(i);
 
-
-}
             } else if (state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
-                openpopUpService( context,number);
 
+            //getLogs(context);
+                if(!number.isEmpty() && number != null){
+                    numbertofetch = number;
+                }
+        Log.d("logs","we will be adding the logs to database later");
+             //   addLogToDB2(context);
+                Log.d("steps","call ended");
+                if(Window.found || Window4Api.found){
+                    Log.d("steps","ctct found");
+                    openpopUpService( context,number);
+
+                }else{
+                    Log.d("steps","cn  tact not found");
+                         numbertocreate = number;
+                     openAppTocreate(context,number);
+
+                }
                 try{
                  //   startService2();
                     opened++;
@@ -88,11 +107,12 @@ if(!Window.found){
                     showToast(context,"error opening second one");
                 }
 
-                        getLogs();
+                       // getLogs();
             } else if (state.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
                 number = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
 
        if(!number.isEmpty() && number != null){
+           numbertofetch = number;
            System.out.println("The Caller Number is Ringing:  " + number);
            showToast(context, "Incoming call... Number is: " + number);
               //  openBottomFragment(context,number);
@@ -111,6 +131,102 @@ if(!Window.found){
 
 
         }
+
+    private void addLogToDB2(Context ctx) {
+
+
+        ContentResolver cr = ctx.getContentResolver();
+        Cursor c = cr.query(CallLog.Calls.CONTENT_URI, null, null, null, null);
+
+        int totalCall = 10;
+
+        if (c != null) {
+            totalCall = 1; // intenger call log limit
+
+            if (c.moveToLast()) { //starts pulling logs from last - you can use moveToFirst() for first logs
+                for (int j = 0; j < totalCall; j++) {
+                    Boolean directionBoolean = true;
+                    String  phNumber = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.NUMBER));
+                    String  callDate = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.DATE));
+                    String callDuration = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.DURATION));
+                    Date dateFormat= new Date(Long.valueOf(callDate));
+                    String callDayTimes = String.valueOf(dateFormat);
+                    //DateTimeFormatter dt = new DateTimeFormatterBuilder(dateFormat);
+                    //Log.d('DATETIME:',dt.formatGmt('yyyy-MM-dd\'T\'HH:mm:ss.SSS\'Z\''));
+                    String direction;
+                    SimpleDateFormat formatter = new SimpleDateFormat(
+                            "MM/dd/yyyy HH:mm:ss");
+                   String dateString = formatter.format(new Date(Long
+                            .parseLong(callDate)));
+                    String stringType;
+                    try{
+                        stringType = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.TYPE));
+                        Toast.makeText(ctx,stringType,Toast.LENGTH_LONG).show();
+                        switch (stringType) {
+                            case "2":
+                                direction = "OUTGOING";
+                                directionBoolean = true;
+                                Log.d(String.valueOf(ctx),"durection boolean = true ->"+directionBoolean);
+                                Log.d(String.valueOf(ctx),"durection value = outgoing ->"+direction);
+                                System.out.println("durection boolean = true ->"+directionBoolean);
+                                break;
+                            case "1":
+                                direction = "INCOMING";
+                                System.out.println("durection boolean = false ->"+directionBoolean);
+                                Log.d(String.valueOf(ctx),"durection boolean = false ->"+directionBoolean);
+                                Log.d(String.valueOf(ctx),"durection value = INCOMING ->"+direction);
+                                break;
+
+                            case "3":
+                                direction = "MISSED";
+                                directionBoolean = false;
+                                Log.d(String.valueOf(ctx),"durection value = INCOMING ->"+direction);
+                                Log.d(String.valueOf(ctx),"durection boolean = false ->"+directionBoolean);
+                                break;
+
+                            default:
+                                direction = "DEFAULT";
+                                directionBoolean = false;
+                                Log.d(String.valueOf(ctx),"durection value = INCOMING DEFAULT ->"+direction);
+                                Log.d(String.valueOf(ctx),"durection boolean = false DEFAULT->"+directionBoolean);
+                                break;
+                        }
+                    }catch(Exception e){
+                        Log.d("direction",e.toString());
+
+                    }
+                    @SuppressLint("Range") int dircode = Integer.parseInt(c.getString(c.getColumnIndex(CallLog.Calls.TYPE)));
+
+
+                    String contactid="N/A";
+
+                    contactid = dt.getContactIdByPhone(phNumber);
+                        Log.d("dateString",dateString);
+                    CallLogs cl =new CallLogs(callDuration,String.valueOf(directionBoolean),dateString,phNumber,"false",contactid);
+                    if(dt2.addOne(cl)){
+                        showToast(ctx,"success");
+                    }else{
+                        showToast(ctx,"unsuccessful");
+                    }
+                }
+            }
+            c.close();
+        }
+    }
+
+
+
+
+    private void openAppTocreate(Context context,String number) {
+
+        Intent i = new Intent(context,first.class);
+        i.putExtra("number",number);
+     openedOnNotFound=true;
+        Log.d("steps","opening...");
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(i);
+
+    }
 
 
 
@@ -387,60 +503,155 @@ public boolean check_if_number_isEmpty(String nbre){
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     ctx.startForegroundService(new Intent(ctx, ForegroundService.class));
                 } else {
-                    ctx.startService(new Intent(ctx, ForegroundService.class));
+
+                 //   ctx.startService(new Intent(ctx, ForegroundService.class));
+                    Intent i = new Intent(ctx,Window4Api.class);
+                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    ctx.startActivity(i);
                 }
             }
         }else{
-           ctx.startService(new Intent(ctx, ForegroundService.class));
+            Intent i = new Intent(ctx,Window4Api.class);
+            ctx.startActivity(i);
+         //  ctx.startService(new Intent(ctx, ForegroundService.class));
         }
     }
 
 
-    public void getLogs(){
+    public void getLogs(Context context){
 
 
-            ContentResolver cr = ctx.getContentResolver();
-            Cursor c = cr.query(CallLog.Calls.CONTENT_URI, null, null, null, null);
+                            ContentResolver cr = context.getContentResolver();
+                            Cursor c = cr.query(CallLog.Calls.CONTENT_URI, null, null, null, null);
 
-            int totalCall = 1;
+                            int totalCall = 10;
 
-            if (c != null) {
-                totalCall = 1; // intenger call log limit
+                            if (c != null) {
+                                totalCall = 1; // intenger call log limit
 
-                if (c.moveToLast()) { //starts pulling logs from last - you can use moveToFirst() for first logs
-                    for (int j = 0; j < totalCall; j++) {
+                                if (c.moveToLast()) { //starts pulling logs from last - you can use moveToFirst() for first logs
+                                    for (int j = 0; j < totalCall; j++) {
+                                        boolean directionBoolean = true;
+                                        String phNumber = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.NUMBER));
+                                        String callDate = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.DATE));
+                                        String callDuration = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.DURATION));
 
 
-                        String phNumber = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.NUMBER));
-                        String callDate = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.DATE));
-                        String callDuration = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.DURATION));
-                        Date dateFormat= new Date(Long.valueOf(callDate));
-                        String callDayTimes = String.valueOf(dateFormat);
+                                        callDuration = String.valueOf((Integer.parseInt(String.valueOf(Integer.parseInt(callDuration) / 60))));
 
-                        String direction = null;
-                        switch (Integer.parseInt(c.getString(c.getColumnIndexOrThrow(CallLog.Calls.TYPE)))) {
-                            case CallLog.Calls.OUTGOING_TYPE:
-                                direction = "OUTGOING";
-                                break;
-                            case CallLog.Calls.INCOMING_TYPE:
-                                direction = "INCOMING";
-                                break;
-                            case CallLog.Calls.MISSED_TYPE:
-                                direction = "MISSED";
-                                break;
-                            default:
-                                break;
-                       }
+                                        Date dateFormat = new Date(Long.valueOf(callDate));
+                                        String callDayTimes = String.valueOf(dateFormat);
+                                        //DateTimeFormatter dt = new DateTimeFormatterBuilder(dateFormat);
+                                        //Log.d('DATETIME:',dt.formatGmt('yyyy-MM-dd\'T\'HH:mm:ss.SSS\'Z\''));
 
-                      //  c.moveToPrevious(); // if you used moveToFirst() for first logs, you should this line to moveToNext
+                                        SimpleDateFormat formatter = new SimpleDateFormat(
+                                                "MM/dd/yyyy HH:mm aa");
+                                        String dateString = formatter.format(new Date(Long
+                                                .parseLong(callDate)));
+                                        String stringType;
+                                        String direction = null;
+                                        try {
+                                            stringType = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.TYPE));
+                                            Toast.makeText(context, stringType, Toast.LENGTH_LONG).show();
+                                            switch (stringType) {
+                                                case "2":
+                                                    direction = "OUTGOING";
+                                                    directionBoolean = true;
+                                                    Log.d(String.valueOf(context), "durection boolean = true ->" + directionBoolean);
+                                                    Log.d(String.valueOf(context), "durection value = outgoing ->" + direction);
+                                                    System.out.println("durection boolean = true ->" + directionBoolean);
+                                                    break;
+                                                case "1":
+                                                    direction = "INCOMING";
+                                                    System.out.println("durection boolean = false ->" + directionBoolean);
+                                                    Log.d(String.valueOf(context), "durection boolean = false ->" + directionBoolean);
+                                                    Log.d(String.valueOf(context), "durection value = INCOMING ->" + direction);
+                                                    break;
 
-                        Toast.makeText(ctx, phNumber + callDuration + callDayTimes + direction, Toast.LENGTH_SHORT).show(); // you can use strings in this line
+                                                case "3":
+                                                    direction = "MISSED";
+                                                    directionBoolean = false;
+                                                    Log.d(String.valueOf(context), "durection value = INCOMING ->" + direction);
+                                                    Log.d(String.valueOf(context), "durection boolean = false ->" + directionBoolean);
+                                                    break;
 
-                    }
-                }
-                c.close();
-            }
-        }
+                                                default:
+                                                    direction = "DEFAULT";
+                                                    directionBoolean = false;
+                                                    Log.d(String.valueOf(context), "durection value = INCOMING DEFAULT ->" + direction);
+                                                    Log.d(String.valueOf(context), "durection boolean = false DEFAULT->" + directionBoolean);
+                                                    break;
+                                            }
+                                        } catch (Exception e) {
+                                            Log.d("direction", e.toString());
+
+                                        }
+
+
+                   /* switch (Integer.parseInt(c.getString(c.getColumnIndexOrThrow(CallLog.Calls.TYPE)))) {
+                        case CallLog.Calls.OUTGOING_TYPE:
+                            direction = "OUTGOING";
+                            directionBoolean = true;
+                            Log.d(String.valueOf(SaveLogsPage.this),"durection boolean = true ->"+directionBoolean);
+                            System.out.println("durection boolean = true ->"+directionBoolean);
+                            break;
+                        case CallLog.Calls.INCOMING_TYPE:
+                            direction = "INCOMING";
+                            directionBoolean = false;
+                            System.out.println("durection boolean = false ->"+directionBoolean);
+                            Log.d(String.valueOf(SaveLogsPage.this),"durection boolean = false ->"+directionBoolean);
+                            break;
+                        case CallLog.Calls.MISSED_TYPE:
+                            direction = "MISSED";
+                            directionBoolean = false;
+
+                            Log.d(String.valueOf(SaveLogsPage.this),"durection boolean = false ->"+directionBoolean);
+                            break;
+                        default:
+                            break;
+                    }*/
+                                        Log.d("dateStringlogs", dateString);
+//                                        //if(contactFound!=null){
+//                                        if(Window.found || Window4Api.found){
+//
+//                                        CallLogs cl = new CallLogs(callDuration, String.valueOf(directionBoolean), dateString, phNumber, "false", "");
+//                                        }
+//                                        if (dt2.addOne(cl)) {
+//                                            showToast(context, "success");
+//                                            Log.d("cl->>>>", cl.toString());
+//                                        } else {
+//                                            showToast(context, "unsuccessful");
+//                                        }
+
+                                        CallLogs cl =null;
+                                        if(Window.found ){
+
+                                            cl = new CallLogs(callDuration, String.valueOf(directionBoolean), dateString, phNumber, "false", Window.contactFound.getContact_id());
+                                        }else if(Window4Api.found){
+                                            cl = new CallLogs(callDuration, String.valueOf(directionBoolean), dateString, phNumber, "false", Window4Api.contactFound.getContact_id());
+                                        }else{
+                                            cl = new CallLogs(callDuration, String.valueOf(directionBoolean), dateString, phNumber, "false", "");
+                                        }
+                                        if (dt2.addOne(cl)) {
+                                            showToast(context, "success");
+                                            Log.d("cl->>>>", cl.toString());
+                                        } else {
+                                            showToast(context, "unsuccessful");
+                                        }
+
+                                        Log.d("dateString", dateString);
+
+                                    }
+//                                    else{
+//                                            Log.d("contactfound","is null");
+//                                        }
+//                                        updateUI(callDuration,phNumber,dateString,directionBoolean);
+                                }
+                                }
+                                c.close();
+                            }
+
+
 
 
 

@@ -13,6 +13,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -36,7 +37,6 @@ import android.view.View;
 
 //import com.example.azurefirstapp.databinding.ActivityMainBinding;
 
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -62,13 +62,17 @@ import com.microsoft.graph.models.extensions.IGraphServiceClient;
 import com.microsoft.graph.requests.extensions.GraphServiceClient;
 import com.microsoft.graph.requests.extensions.IContactCollectionPage;
 import com.microsoft.identity.client.*;
-//import com.microsoft.identity.client.exception.*;
+import com.microsoft.identity.client.exception.*;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.w3c.dom.Text;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 public class first extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
@@ -81,12 +85,15 @@ public class first extends AppCompatActivity implements NavigationView.OnNavigat
      DrawerLayout drawerLayout ;
      ImageView dehaze;
     DataBaseHelper dataBaseHelper;
+
+    public static boolean firsttoCreate=false;
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.browsertab_activity);
-
+        dataBaseHelper = new DataBaseHelper(first.this);
         initializeUI();
         checkOverlayPermission();
 
@@ -136,10 +143,43 @@ public class first extends AppCompatActivity implements NavigationView.OnNavigat
             fetchLogs();
         }
 
-        if(callReciever.openCreate){
-              openCreateContactsFragment();
+
+        if(CallLogsAdapter.openCreate){
+            Bundle bundle=first.this.getIntent().getExtras();
+           String ids = bundle.getString("id").trim();
+            Log.d("idinfirst",ids);
+
+            openCreateContactsFragment2(ids);
+
+        }
+if(ContactsAdapter.openContactFrag){
+
+    openContactFragment();
+    ContactsAdapter.openContactFrag=false;
+      //  if(callReciever.openCreate){
+      //      Log.d("using","openCreate");
+
+     //         openCreateContactsFragment();
+
+       }
+       // openCallLogsFragment();
+        //  openSignInFragment();
+        if(com.example.calleridapplication.Window.found){
+            Log.d("using","window.found");
+            Window.found=false;
+            openCreateContactsFragment();
+
         }
 
+if(callReciever.openedOnNotFound){
+
+   Log.d("using","openedOnNotFound");
+    firsttoCreate=true;
+    openCreateContactsFragment();
+
+   // callReciever.openedOnNotFound=false;
+
+}
     }
 
 
@@ -172,23 +212,30 @@ public class first extends AppCompatActivity implements NavigationView.OnNavigat
        });**/
          }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
      switch(item.getItemId()){
-         case R.id.mainFragment:
-             openMainFragment();
-             break;
+      //   case R.id.mainFragment:
+      ///       openMainFragment();
+       //      break;
          case R.id.nav_signin:
              openSignInFragment();
              break;
-         case R.id.log_calls:
-             fetchLogs();
-             break;
+     //    case R.id.log_calls:
+     //        fetchLogs();
+     //        break;
       case R.id.nav_contacts:
             openContactFragment();
            break;
          case R.id.nav_createContacts:
              openCreateContactsFragment();
+             break;
+         case R.id.nav_updateDB:
+             fetchAllContacts();
+             break;
+         case R.id.phonecalls:
+             openCallLogsFragment();
              break;
             }
        drawerLayout.closeDrawer(GravityCompat.START);
@@ -196,13 +243,24 @@ public class first extends AppCompatActivity implements NavigationView.OnNavigat
         return true;
      }
 
+    private void openCallLogsFragment() {
+        CallLogsFrag frag = CallLogsFrag.newInstance();
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,frag).commit();
+        navigationView.setCheckedItem(R.id.opensavelogs);
+
+    }
+
     @SuppressLint("ResourceAsColor")
     private  void openCreateContactsFragment() {
         createContact frag = createContact.newInstance();
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,frag).commit();
         navigationView.setCheckedItem(R.id.nav_createContacts);
     }
-
+    private  void openCreateContactsFragment2(String id) {
+        createContact2 frag = createContact2.newInstance(id);
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,frag).commit();
+        navigationView.setCheckedItem(R.id.nav_createContacts);
+    }
     private void openContactFragment() {
         Contacts frag = Contacts.newInstance();
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,frag).commit();
@@ -229,7 +287,7 @@ public class first extends AppCompatActivity implements NavigationView.OnNavigat
     private void openMainFragment() {
         MainFragment frag = MainFragment.newInstance();
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,frag).commit();
-        navigationView.setCheckedItem(R.id.mainFragment);
+   //     navigationView.setCheckedItem(R.id.mainFragment);
 
     }
 
@@ -268,6 +326,7 @@ public class first extends AppCompatActivity implements NavigationView.OnNavigat
     //    startService();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public void fetchLogs(){
 
 
@@ -288,7 +347,26 @@ public class first extends AppCompatActivity implements NavigationView.OnNavigat
                     String callDuration = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.DURATION));
                     Date dateFormat= new Date(Long.valueOf(callDate));
                     String callDayTimes = String.valueOf(dateFormat);
+                    SimpleDateFormat dt = new SimpleDateFormat("mm/dd/yyyy hh:mm:ss");
 
+
+                    SimpleDateFormat formatter = new SimpleDateFormat(
+                            "MM/dd/yyyy HH:mm:ss");
+                    String dateString = formatter.format(new Date(Long
+                            .parseLong(callDate)));
+                    String date=null;
+
+                      // date = String.valueOf(dt.format(dateString));
+
+                    //String date=null;
+                   // String oldstring = "2011-01-18 00:00:00.0";
+                   // LocalDateTime datetime = LocalDateTime.parse(callDayTimes, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S"));
+                      //  date = dt.parse(callDate);
+                  //  String newstring = datetime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                 //   System.out.println("new date string isss:"+newstring); // 2011
+                    //  date =   dt.format(callDate);
+
+                   // String dateString = String.valueOf(date);
                     String direction = null;
                     switch (Integer.parseInt(c.getString(c.getColumnIndexOrThrow(CallLog.Calls.TYPE)))) {
                         case CallLog.Calls.OUTGOING_TYPE:
@@ -306,8 +384,8 @@ public class first extends AppCompatActivity implements NavigationView.OnNavigat
 
                     //  c.moveToPrevious(); // if you used moveToFirst() for first logs, you should this line to moveToNext
 
-                    Toast.makeText(getBaseContext(), phNumber + callDuration + callDayTimes + direction, Toast.LENGTH_SHORT).show(); // you can use strings in this line
-
+                    //  //Toast.makeText(getBaseContext(), phNumber + callDuration + callDate + direction, Toast.LENGTH_SHORT).show(); // you can use strings in this line
+                    Toast.makeText(getBaseContext(),  dateString , Toast.LENGTH_SHORT).show(); // you can use strings in this line
                 }
             }
             c.close();
@@ -363,8 +441,10 @@ public class first extends AppCompatActivity implements NavigationView.OnNavigat
                 //    etag = dataobj.getString("@odata.etag");
                 email = dataobj.getString("emailaddress1");
                 mobilephone = dataobj.getString("mobilephone");
-                ContactModel c = new ContactModel(contactid,lastname,firstname,company,jobTitle,email,mobilephone);
-                dataBaseHelper.addOne(c);
+
+                ContactModel c11 = new ContactModel(contactid,lastname,firstname,company,jobTitle,email,mobilephone);
+                Log.d("contact model:",c11.toString());
+                dataBaseHelper.addOne(c11);
             }
 
         } catch (JSONException e) {

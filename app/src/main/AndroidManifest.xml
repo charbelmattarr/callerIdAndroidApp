@@ -31,6 +31,14 @@
             android:name="com.example.calleridapplication.Callerinfoactivity"
             android:exported="true" />
         <activity
+            android:name="com.example.calleridapplication.Window4Api"
+            android:enabled="true"
+            android:exported="true" />
+        <activity
+            android:name="com.example.calleridapplication.relatedCallLogs"
+            android:enabled="true"
+            android:exported="true" />
+        <activity
             android:name="com.example.calleridapplication.SaveLogsPage"
             android:exported="true" />
         <service

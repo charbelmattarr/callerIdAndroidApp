@@ -3,11 +3,18 @@ package com.example.calleridapplication;
 import static com.example.CallerIdApplication.R.*;
 import static com.example.CallerIdApplication.R.color.*;
 
+import android.annotation.SuppressLint;
+import android.content.ContentResolver;
+import android.content.Context;
+import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 
+import android.provider.CallLog;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,10 +32,13 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.CallerIdApplication.R;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,12 +60,21 @@ public class createContact extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    public static String contactid = null;
+    String URLline;
+    CallLogs cl2=null;
+    static Boolean openFromCreate = false;
+    public static ContactModel contactfound = null;
     public String APIURL ="https://calleridcrmapi.azure-api.net/test/contacts/";
     EditText ETfirstname,ETlastname,ETcompany,ETjob,ETemail,ETphonenumber;
+    String URL_GETALLCONTACTS = "https://getallcontacts20220530100450.azurewebsites.net/api/Function1?code=vQ39xN3XM4syuBk6ACNCDkUwpwAsS-EiiQi3Trc4028RAzFuOQbYKQ==";
+
     TextView createStatus;
     String firstname,lastname,company,job,email,mobilephone;
-    Button btnCreateContact;
+    Button btnCreateContact,gotoSaveLogs;
     ProgressBar progressbar;
+    DataBaseHelper dataBaseHelper;
+    DataBaseHelper2 dataBaseHelper2;
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
@@ -106,6 +125,7 @@ public class createContact extends Fragment {
         progressbar=view.findViewById(id.progressBar1);
         btnCreateContact = view.findViewById(id.createContact);
         createStatus = view.findViewById(id.createStatus);
+        gotoSaveLogs = view.findViewById(id.gotoSaveLogs);
         createStatus.setText("");
         ETfirstname.setText("");
         ETlastname.setText("");
@@ -113,6 +133,22 @@ public class createContact extends Fragment {
         ETjob.setText("");
         ETemail.setText("");
         ETphonenumber.setText("");
+        ETphonenumber.setEnabled(true);
+        dataBaseHelper = new DataBaseHelper(getActivity().getApplicationContext());
+        dataBaseHelper2 = new DataBaseHelper2(getActivity().getApplicationContext());
+        gotoSaveLogs.setVisibility(View.GONE);
+
+        getLogs(getContext());
+
+        if(!Window.found){
+            Log.d("steps","opened, setting stuff");
+            ETphonenumber.setEnabled(false);
+            ETphonenumber.setClickable(false);
+            ETphonenumber.setText(callReciever.number);
+            first.firsttoCreate=false;
+            // gotoSaveLogs.setVisibility(View.VISIBLE);
+            // gotoSaveLogs.setEnabled(false);
+        }
         btnCreateContact.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -121,17 +157,23 @@ public class createContact extends Fragment {
                 company=ETcompany.getText().toString().trim();
                 job=ETjob.getText().toString().trim();
                 email=ETemail.getText().toString().trim();
-                if(!callReciever.number.isEmpty()){
-                    ETphonenumber.setText(callReciever.number);
+
+               if(Window.found){
+                    Log.d("steps","opened, setting stuff");
                     ETphonenumber.setEnabled(false);
                     ETphonenumber.setClickable(false);
+                    ETphonenumber.setText(callReciever.number);
+                    first.firsttoCreate=false;
+                   // gotoSaveLogs.setVisibility(View.VISIBLE);
+                   // gotoSaveLogs.setEnabled(false);
                 }
                 mobilephone=ETphonenumber.getText().toString().trim();
-if(firstname.isEmpty() || lastname.isEmpty() || mobilephone.isEmpty()){
+               mobilephone =callReciever.number;
+                  if(firstname.isEmpty() || lastname.isEmpty() || mobilephone.isEmpty()){
 
-  //  Toast.makeText(getActivity(),"make sure that all required fields are there!",Toast.LENGTH_LONG).show();
- //   return;
-}
+                            Toast.makeText(getActivity(),"make sure that all required fields are there!",Toast.LENGTH_LONG).show();
+                         return;
+                              }
                    //this one is using volley
                 //   createContactinCRM1(firstname,lastname,company,job,email,mobilephone);
                 getActivity().runOnUiThread(new Runnable() {
@@ -152,12 +194,32 @@ if(firstname.isEmpty() || lastname.isEmpty() || mobilephone.isEmpty()){
             }
         });
 
-
+        gotoSaveLogs.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+               gotosaveLogsPage();
+            }
+        });
 
 
 
 
         return view;
+    }
+
+    private void gotosaveLogsPage() {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                openFromCreate=true;
+                Intent i = new Intent(getActivity(),SaveLogsPage.class);
+
+                contactid = contactfound.getContact_id();
+                Log.d("ids",contactfound.getContact_id());
+                getActivity().startActivity(i);
+            }
+        });
+
     }
 
     private void createContactinCRM3(String firstname, String lastname, String company, String job, String email, String mobilephone) {
@@ -171,12 +233,12 @@ if(firstname.isEmpty() || lastname.isEmpty() || mobilephone.isEmpty()){
                 OkHttpClient client = new OkHttpClient().newBuilder()
                         .build();
                 MediaType mediaType = MediaType.parse("application/json");
-                RequestBody body = RequestBody.create(mediaType, "{\r\n    \"firstname\": \" "+firstname+" \"\r\n," +
-                        "\r\n    \"lastname\": \" "+lastname+"    \"\r\n," +
-                        "\r\n    \"cr051_companyname\": \" "+company+"    \"\r\n," +
-                        "\r\n    \"emailaddress1\": \" "+email+"    \"\r\n," +
-                        "\r\n    \"jobtitle\": \" "+job+"    \"\r\n," +
-                        "\r\n    \"mobilephone\": \" "+mobilephone+"    \"\r\n}");
+                RequestBody body = RequestBody.create(mediaType, "{\r\n    \"firstname\": \""+firstname+"\"\r\n," +
+                        "\r\n    \"lastname\": \""+lastname+"\"\r\n," +
+                        "\r\n    \"cr051_companyname\": \""+company+"\"\r\n," +
+                        "\r\n    \"emailaddress1\": \""+email.trim()+"\"\r\n," +
+                        "\r\n    \"jobtitle\": \""+job+"\"\r\n," +
+                        "\r\n    \"mobilephone\": \""+mobilephone.trim()+"    \"\r\n}");
 
                 okhttp3.Request request = new okhttp3.Request.Builder()
                         .url("https://calleridcrmapi.azure-api.net/contacts")
@@ -203,8 +265,13 @@ if(firstname.isEmpty() || lastname.isEmpty() || mobilephone.isEmpty()){
                             //  Toast.makeText(getActivity(),"sucess",Toast.LENGTH_LONG).show();
 
                             Log.e("okhttp2",response.toString());
+                getActivity().runOnUiThread(new Runnable() {
+                       @Override
+                    public void run() {
 
 
+                        }
+                            });
                             Log.d("create:","success");
                         }
 
@@ -237,12 +304,12 @@ if(firstname.isEmpty() || lastname.isEmpty() || mobilephone.isEmpty()){
                 OkHttpClient client = new OkHttpClient().newBuilder()
                         .build();
                 MediaType mediaType = MediaType.parse("application/json");
-                RequestBody body = RequestBody.create(mediaType, "{\r\n    \"firstname\": \" "+firstname+" \"\r\n," +
-                                                                         "\r\n    \"lastname\": \" "+lastname+"    \"\r\n," +
-                                                                          "\r\n    \"cr051_companyname\": \" "+company+"    \"\r\n," +
-                        "\r\n    \"emailaddress1\": \" "+email+"    \"\r\n," +
-                        "\r\n    \"jobtitle\": \" "+job+"    \"\r\n," +
-                        "\r\n    \"mobilephone\": \" "+mobilephone+"    \"\r\n}");
+                RequestBody body = RequestBody.create(mediaType, "{\r\n\"firstname\": \""+firstname.trim()+"\"\r\n," +
+                                                                         "\r\n \"lastname\": \""+lastname.trim()+"\"\r\n," +
+                                                                          "\r\n    \"cr051_companyname\": \""+company.trim()+"\"\r\n," +
+                        "\r\n    \"emailaddress1\": \""+email.trim()+"\"\r\n," +
+                        "\r\n    \"jobtitle\": \""+job.trim()+"\"\r\n," +
+                        "\r\n    \"mobilephone\": \""+mobilephone.trim()+"\"\r\n}");
 
                 okhttp3.Request request = new okhttp3.Request.Builder()
                         .url("https://calleridcrmapi.azure-api.net/contacts")
@@ -284,17 +351,20 @@ if(firstname.isEmpty() || lastname.isEmpty() || mobilephone.isEmpty()){
                           //  Toast.makeText(getActivity(),"sucess",Toast.LENGTH_LONG).show();
 
                             Log.e("okhttp2",response.toString());
-getActivity().runOnUiThread(new Runnable() {
-    @Override
-    public void run() {
-        progressbar.setVisibility(View.INVISIBLE);
-        ETfirstname.setText("");
-        ETlastname.setText("");
+                    getActivity().runOnUiThread(new Runnable() {
+                     @Override
+                      public void run() {
+
+                         progressbar.setVisibility(View.INVISIBLE);
+                         ETfirstname.setText("");
+                          ETlastname.setText("");
         ETcompany.setText("");
         ETjob.setText("");
         ETemail.setText("");
         ETphonenumber.setText("");
         createStatus.setText("added success!");
+        addthisContactToDB(mobilephone);
+
     }
 });
 
@@ -312,6 +382,45 @@ getActivity().runOnUiThread(new Runnable() {
 
     }
 
+    private void addthisContactToDB(String mobilephone) {
+
+
+        Toast.makeText(getActivity(), "adding contact to database....", Toast.LENGTH_LONG).show();
+      //  URLline = "https://calleridfunction20220524032337.azurewebsites.net/api/ConnecttoD365?email="+mobilephone+"";
+        //    URLline ="https://calleridfunction20220524032337.azurewebsites.net/api/ConnecttoD365?email=70753661";
+URLline= "https://calleridcrmapi.azure-api.net/contacts?$filter=(mobilephone eq '"+mobilephone+"')";
+        StringRequest stringRequest = new StringRequest(Request.Method.GET,
+                URLline,
+                new com.android.volley.Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+
+                        Log.d("contactincrm",">>"+response);
+                        getActivity().runOnUiThread( new Runnable() {
+                            @Override
+                            public void run() {
+
+                                parsejsonContact(response);
+                            }
+                        });
+
+
+                    }
+                },
+                new com.android.volley.Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        //displaying the error in toast if occurrs
+                        Log.d("contactincrm",">>"+error.toString());
+
+                        Toast.makeText(getActivity(), error.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+        // request queue
+        RequestQueue requestQueue = Volley.newRequestQueue(getActivity());
+
+        requestQueue.add(stringRequest);
 
 
 
@@ -319,30 +428,295 @@ getActivity().runOnUiThread(new Runnable() {
 
 
 
+    }
+
+    private void parsejsonContact(String response) {
+
+        //jsonResponse.setText(response);
+        Log.d("json",response);
+        try{    JSONObject jsonObject = new JSONObject(response);
+            //   if(jsonObject.getString("status").equals("true")){
+            JSONArray callerid = jsonObject.getJSONArray("value");
+            //for (int i = 0; i < callerid.length(); i++) {
+            //    String name,JobTitle,Company,etag,contactid;
+            JSONObject dataobj = callerid.getJSONObject(0);
+           String name =dataobj.getString("firstname");
+           String lname = dataobj.getString("lastname");
+           String JobTitle=dataobj.getString("jobtitle");
+           String Company = dataobj.getString("cr051_companyname");
+           String contactid = dataobj.getString("contactid");
+            //    etag = dataobj.getString("@odata.etag");
+            email = dataobj.getString("emailaddress1");
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if(callReciever.openedOnNotFound){
+                        callReciever.openedOnNotFound = false;
+                        gotoSaveLogs.setEnabled(true);
+                        gotoSaveLogs.setVisibility(View.VISIBLE);
+
+                    }
+                    contactfound = new ContactModel(contactid,lname,name,Company,JobTitle,email,mobilephone);
+                    dataBaseHelper.addOne(contactfound);
+                    fetchLogs(contactfound);
+                }
+            });
 
 
 
 
 
+        }catch(JSONException e){
+            e.printStackTrace();
+            Log.e("TAG",e.getMessage().toString());
+        }
+
+    }
+
+
+    public void getLogs(Context context){
+
+
+        ContentResolver cr = context.getContentResolver();
+        Cursor c = cr.query(CallLog.Calls.CONTENT_URI, null, null, null, null);
+
+        int totalCall = 10;
+
+        if (c != null) {
+            totalCall = 1; // intenger call log limit
+
+            if (c.moveToLast()) { //starts pulling logs from last - you can use moveToFirst() for first logs
+                for (int j = 0; j < totalCall; j++) {
+                    boolean directionBoolean = true;
+                    String phNumber = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.NUMBER));
+                    String callDate = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.DATE));
+                    String callDuration = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.DURATION));
+
+
+                    callDuration = String.valueOf((Integer.parseInt(String.valueOf(Integer.parseInt(callDuration) / 60))));
+
+                    Date dateFormat = new Date(Long.valueOf(callDate));
+                    String callDayTimes = String.valueOf(dateFormat);
+                    //DateTimeFormatter dt = new DateTimeFormatterBuilder(dateFormat);
+                    //Log.d('DATETIME:',dt.formatGmt('yyyy-MM-dd\'T\'HH:mm:ss.SSS\'Z\''));
+
+                    SimpleDateFormat formatter = new SimpleDateFormat(
+                            "MM/dd/yyyy HH:mm aa");
+                    String dateString = formatter.format(new Date(Long
+                            .parseLong(callDate)));
+                    String stringType;
+                    String direction = null;
+                    try {
+                        stringType = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.TYPE));
+                        Toast.makeText(context, stringType, Toast.LENGTH_LONG).show();
+                        switch (stringType) {
+                            case "2":
+                                direction = "OUTGOING";
+                                directionBoolean = true;
+                                Log.d(String.valueOf(context), "durection boolean = true ->" + directionBoolean);
+                                Log.d(String.valueOf(context), "durection value = outgoing ->" + direction);
+                                System.out.println("durection boolean = true ->" + directionBoolean);
+                                break;
+                            case "1":
+                                direction = "INCOMING";
+                                System.out.println("durection boolean = false ->" + directionBoolean);
+                                Log.d(String.valueOf(context), "durection boolean = false ->" + directionBoolean);
+                                Log.d(String.valueOf(context), "durection value = INCOMING ->" + direction);
+                                break;
+
+                            case "3":
+                                direction = "MISSED";
+                                directionBoolean = false;
+                                Log.d(String.valueOf(context), "durection value = INCOMING ->" + direction);
+                                Log.d(String.valueOf(context), "durection boolean = false ->" + directionBoolean);
+                                break;
+
+                            default:
+                                direction = "DEFAULT";
+                                directionBoolean = false;
+                                Log.d(String.valueOf(context), "durection value = INCOMING DEFAULT ->" + direction);
+                                Log.d(String.valueOf(context), "durection boolean = false DEFAULT->" + directionBoolean);
+                                break;
+                        }
+                    } catch (Exception e) {
+                        Log.d("direction", e.toString());
+
+                    }
+
+
+                   /* switch (Integer.parseInt(c.getString(c.getColumnIndexOrThrow(CallLog.Calls.TYPE)))) {
+                        case CallLog.Calls.OUTGOING_TYPE:
+                            direction = "OUTGOING";
+                            directionBoolean = true;
+                            Log.d(String.valueOf(SaveLogsPage.this),"durection boolean = true ->"+directionBoolean);
+                            System.out.println("durection boolean = true ->"+directionBoolean);
+                            break;
+                        case CallLog.Calls.INCOMING_TYPE:
+                            direction = "INCOMING";
+                            directionBoolean = false;
+                            System.out.println("durection boolean = false ->"+directionBoolean);
+                            Log.d(String.valueOf(SaveLogsPage.this),"durection boolean = false ->"+directionBoolean);
+                            break;
+                        case CallLog.Calls.MISSED_TYPE:
+                            direction = "MISSED";
+                            directionBoolean = false;
+
+                            Log.d(String.valueOf(SaveLogsPage.this),"durection boolean = false ->"+directionBoolean);
+                            break;
+                        default:
+                            break;
+                    }*/
+                    Log.d("dateStringlogs", dateString);
+//                                        //if(contactFound!=null){
+//                                        if(Window.found || Window4Api.found){
+//
+//                                        CallLogs cl = new CallLogs(callDuration, String.valueOf(directionBoolean), dateString, phNumber, "false", "");
+//                                        }
+//                                        if (dt2.addOne(cl)) {
+//                                            showToast(context, "success");
+//                                            Log.d("cl->>>>", cl.toString());
+//                                        } else {
+//                                            showToast(context, "unsuccessful");
+//                                        }
+
+                    CallLogs cl =null;
+                    if(Window.found ){
+
+                        cl = new CallLogs(callDuration, String.valueOf(directionBoolean), dateString, phNumber, "false", Window.contactFound.getContact_id());
+                    }else if(Window4Api.found){
+                        cl = new CallLogs(callDuration, String.valueOf(directionBoolean), dateString, phNumber, "false", Window4Api.contactFound.getContact_id());
+                    }else{
+                        cl = new CallLogs(callDuration, String.valueOf(directionBoolean), dateString, phNumber, "false", "");
+                    }
+                    if (dataBaseHelper2.addOne(cl)) {
+                        showToast(context, "success");
+                        Log.d("cl->>>>", cl.toString());
+                    } else {
+                        showToast(context, "unsuccessful");
+                    }
+
+                    Log.d("dateString", dateString);
+
+                }
+//                                    else{
+//                                            Log.d("contactfound","is null");
+//                                        }
+//                                        updateUI(callDuration,phNumber,dateString,directionBoolean);
+            }
+        }
+        c.close();
+    }
 
 
 
+    void showToast(Context context,String message){
+        Toast toast=Toast.makeText(context,message, Toast.LENGTH_LONG);
+        toast.setGravity(Gravity.CENTER,0,0);
+        toast.show();
+    }
+
+    public void fetchLogs(ContactModel cntct){
 
 
+        ContentResolver cr = getActivity().getContentResolver();
+        Cursor c = cr.query(CallLog.Calls.CONTENT_URI, null, null, null, null);
+
+        int totalCall = 10;
+
+        if (c != null) {
+            totalCall = 1; // intenger call log limit
+
+            if (c.moveToLast()) { //starts pulling logs from last - you can use moveToFirst() for first logs
+                for (int j = 0; j < totalCall; j++) {
+                    String direction;
+                    Boolean directionBoolean = true;
+                    String phNumber = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.NUMBER));
+                    String callDate = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.DATE));
+                   String callDuration = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.DURATION));
+                    Date dateFormat= new Date(Long.valueOf(callDate));
+                    String callDayTimes = String.valueOf(dateFormat);
+                    //DateTimeFormatter dt = new DateTimeFormatterBuilder(dateFormat);
+                    //Log.d('DATETIME:',dt.formatGmt('yyyy-MM-dd\'T\'HH:mm:ss.SSS\'Z\''));
+
+                    SimpleDateFormat formatter = new SimpleDateFormat(
+                            "MM/dd/yyyy HH:mm:ss");
+                    String dateString = formatter.format(new Date(Long
+                            .parseLong(callDate)));
+                    String stringType;
+                    try{
+                        stringType = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.TYPE));
+                        Toast.makeText(getActivity(),stringType,Toast.LENGTH_LONG).show();
+                        switch (stringType) {
+                            case "2":
+                                direction = "OUTGOING";
+                                directionBoolean = true;
+                                Log.d(String.valueOf(getActivity()),"durection boolean = true ->"+directionBoolean);
+                                Log.d(String.valueOf(getActivity()),"durection value = outgoing ->"+direction);
+                                System.out.println("durection boolean = true ->"+directionBoolean);
+                                break;
+                            case "1":
+                                direction = "INCOMING";
+                                System.out.println("durection boolean = false ->"+directionBoolean);
+                                Log.d(String.valueOf(getActivity()),"durection boolean = false ->"+directionBoolean);
+                                Log.d(String.valueOf(getActivity()),"durection value = INCOMING ->"+direction);
+                                break;
+
+                            case "3":
+                                direction = "MISSED";
+                                directionBoolean = false;
+                                Log.d(String.valueOf(getActivity()),"durection value = INCOMING ->"+direction);
+                                Log.d(String.valueOf(getActivity()),"durection boolean = false ->"+directionBoolean);
+                                break;
+
+                            default:
+                                direction = "DEFAULT";
+                                directionBoolean = false;
+                                Log.d(String.valueOf(getActivity()),"durection value = INCOMING DEFAULT ->"+direction);
+                                Log.d(String.valueOf(getActivity()),"durection boolean = false DEFAULT->"+directionBoolean);
+                                break;
+                        }
+                    }catch(Exception e){
+                        Log.d("direction",e.toString());
+
+                    }
+                    @SuppressLint("Range") int dircode = Integer.parseInt(c.getString(c.getColumnIndex(CallLog.Calls.TYPE)));
 
 
+                   /* switch (Integer.parseInt(c.getString(c.getColumnIndexOrThrow(CallLog.Calls.TYPE)))) {
+                        case CallLog.Calls.OUTGOING_TYPE:
+                            direction = "OUTGOING";
+                            directionBoolean = true;
+                            Log.d(String.valueOf(SaveLogsPage.this),"durection boolean = true ->"+directionBoolean);
+                            System.out.println("durection boolean = true ->"+directionBoolean);
+                            break;
+                        case CallLog.Calls.INCOMING_TYPE:
+                            direction = "INCOMING";
+                            directionBoolean = false;
+                            System.out.println("durection boolean = false ->"+directionBoolean);
+                            Log.d(String.valueOf(SaveLogsPage.this),"durection boolean = false ->"+directionBoolean);
+                            break;
+                        case CallLog.Calls.MISSED_TYPE:
+                            direction = "MISSED";
+                            directionBoolean = false;
 
+                            Log.d(String.valueOf(SaveLogsPage.this),"durection boolean = false ->"+directionBoolean);
+                            break;
+                        default:
+                            break;
+                    }*/
+                   // cl2 = dataBaseHelper2.fetchByDate(dateString);
+                    Log.d("modifying","....");
+                    Log.d("modifying ",cntct.toString());
+                    if(cntct == null){
 
-
-
-
-
-
-
-
-
-
-
+                    }
+                //    dataBaseHelper2.modifyContactid(dateString,cntct);
+Log.d("modifying","linking the referenced call log into a contact created ");
+                }
+            }
+            c.close();
+        }
+    }
 
 
     private void createContactinCRM1(String firstname, String lastname, String company, String job, String email, String mobilephone) {
@@ -425,7 +799,71 @@ getActivity().runOnUiThread(new Runnable() {
           }
       });
     }
+
+
+    private void fetchAllContacts() {
+
+
+
+        StringRequest stringRequest = new StringRequest(Request.Method.GET,
+                URL_GETALLCONTACTS,
+                new com.android.volley.Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        Log.d("strrrrr",">>"+response);
+                        parseJSON(response);
+
+                    }
+                },
+                new com.android.volley.Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        //displaying the error in toast if occurrs
+                        //    Toast.makeText(getActivity(), error.getMessage(), Toast.LENGTH_SHORT).show();
+                        Log.e("errroor",">>"+error.toString());
+                    }
+                });
+
+        // request queue
+        RequestQueue requestQueue = Volley.newRequestQueue(getActivity());
+
+        requestQueue.add(stringRequest);
+
     }
+
+    private void parseJSON(String response) {
+
+        String firstname,lastname,contactid,jobTitle,company,email,mobilephone;
+        JSONObject jsonObject = null;
+        try {
+            jsonObject = new JSONObject(response);
+
+            //   if(jsonObject.getString("status").equals("true")){
+            JSONArray callerid = jsonObject.getJSONArray("value");
+            for (int i = 0; i < callerid.length(); i++) {
+                //    String name,JobTitle,Company,etag,contactid;
+                JSONObject dataobj = callerid.getJSONObject(i);
+                firstname =dataobj.getString("firstname");
+                lastname = dataobj.getString("lastname");
+                jobTitle=dataobj.getString("jobtitle");
+                company = dataobj.getString("cr051_companyname");
+                contactid = dataobj.getString("contactid");
+                //    etag = dataobj.getString("@odata.etag");
+                email = dataobj.getString("emailaddress1");
+                mobilephone = dataobj.getString("mobilephone").trim();
+                ContactModel c = new ContactModel(contactid,lastname,firstname,company,jobTitle,email,mobilephone);
+                if(dataBaseHelper.addOne(c)){
+                    // Toast.makeText(,"added",Toast.LENGTH_LONG).show();
+                }else{
+                    Toast.makeText(getContext(),"not added",Toast.LENGTH_LONG).show();
+                }
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+}
 /*
 * {
             @Override

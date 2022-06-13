@@ -2,19 +2,77 @@ package com.example.calleridapplication;
 
 public class CallLogs {
     private String duration;
-    private String time;
+    private String direction;
     private String date;
     private String phoneNbre;
+    private String saved="0";
+    private String callerid;
+    private String calllogid;
+
+    public CallLogs(String calllogid,String duration, String direction, String date, String phoneNbre, String saved, String callername) {
+        this.duration = duration;
+        this.direction = direction;
+        this.date = date;
+        this.phoneNbre = phoneNbre;
+        this.saved = saved;
+        this.callerid = callername;
+        this.calllogid = calllogid;
+
+    }
+
+    public CallLogs(String duration, String direction, String date, String phoneNbre, String saved, String callername) {
+        this.duration = duration;
+        this.direction = direction;
+        this.date = date;
+        this.phoneNbre = phoneNbre;
+        this.saved = saved;
+        this.callerid = callername;
+    }
+    public String getCalllogid() {
+        return calllogid;
+    }
+
+    public void setCalllogid(String calllogid) {
+        this.calllogid = calllogid;
+    }
 
     @Override
     public String toString() {
         return "CallLogs{" +
                 "duration='" + duration + '\'' +
-                ", time='" + time + '\'' +
+                ", direction='" + direction + '\'' +
                 ", date='" + date + '\'' +
                 ", phoneNbre='" + phoneNbre + '\'' +
-                ", contactModel=" + contactModel +
+                ", saved='" + saved + '\'' +
+                ", callerid='" + callerid + '\'' +
+                ", calllogid='" + calllogid + '\'' +
                 '}';
+    }
+
+    public String getCallerid() {
+        return callerid;
+    }
+
+    public void setCallerid(String callerid) {
+        this.callerid = callerid;
+    }
+
+    public String getDirection() {
+        return direction;
+    }
+
+    public void setDirection(String direction) {
+        this.direction = direction;
+    }
+
+    public String getSaved() {
+        return saved;
+    }
+
+
+
+    public void setSaved(String saved) {
+        this.saved = saved;
     }
 
     public String getDuration() {
@@ -25,13 +83,7 @@ public class CallLogs {
         this.duration = duration;
     }
 
-    public String getTime() {
-        return time;
-    }
 
-    public void setTime(String time) {
-        this.time = time;
-    }
 
     public String getDate() {
         return date;
@@ -49,23 +101,8 @@ public class CallLogs {
         this.phoneNbre = phoneNbre;
     }
 
-    public ContactModel getContactModel() {
-        return contactModel;
-    }
 
-    public void setContactModel(ContactModel contactModel) {
-        this.contactModel = contactModel;
-    }
 
-    public CallLogs(String duration, String time, String date, String phoneNbre, ContactModel contactModel) {
-        this.duration = duration;
-        this.time = time;
-        this.date = date;
-        this.phoneNbre = phoneNbre;
-        this.contactModel = contactModel;
-    }
-
-    private ContactModel contactModel;
 
 
 }

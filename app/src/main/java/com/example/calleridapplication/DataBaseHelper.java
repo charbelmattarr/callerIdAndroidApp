@@ -6,11 +6,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
-
-import com.microsoft.graph.models.extensions.Contact;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +30,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
           String createTableStatement =
                   "CREATE TABLE " + CONTACT_TABLE + " (" + CONTACT_ID + " TEXT PRIMARY KEY ," + CONTACT_FNAME + " TEXT," +
-                          CONTACT_LNAME + " TEXT, " + CONTACT_COMPANY + " TEXT , " + CONTACT_JOB + " TEXT ," + CONTACT_EMAIL + " TEXT , " + CONTACT_MOBILEPHONE + " TEXT) ";
+                          CONTACT_LNAME + " TEXT, " + CONTACT_COMPANY + " TEXT , " + CONTACT_JOB + " TEXT ," + CONTACT_EMAIL + " TEXT , " + CONTACT_MOBILEPHONE + " TEXT " +
+                          " ) ";
 
           db.execSQL(createTableStatement);
  }
@@ -110,8 +108,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
 
     public ContactModel fetchcontact(String number){
-        //  String queryString = "SELECT * FROM " +CONTACT_TABLE + " WHERE "+ CONTACT_MOBILEPHONE + " = "+ number + "";
-          String queryString = "SELECT * FROM " + CONTACT_TABLE + " WHERE "+ CONTACT_MOBILEPHONE + " = 70753661";
+        String queryString = "SELECT * FROM " +CONTACT_TABLE + " WHERE "+ CONTACT_MOBILEPHONE + " = "+ number + "";
+        //   String queryString = "SELECT * FROM " + CONTACT_TABLE + " WHERE "+ CONTACT_MOBILEPHONE + " = 70753661";
         SQLiteDatabase db = this.getReadableDatabase();
         ContactModel c = null;
         try (Cursor cursor = db.rawQuery(queryString,null)) {
@@ -135,6 +133,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 Log.d("contactttt",c.toString());
                 cursor.close();
 
+            }else{
+                c = new ContactModel("","","","","","","");
             }
         }catch(Exception e){
             Log.e("error",e.toString());
@@ -142,5 +142,144 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return c;
 
     }
+
+
+    public int deleteContact(ContactModel contact){
+        String queryString = "DELETE FROM "+CONTACT_TABLE+" WHERE "+CONTACT_ID+" = \""+contact.getContact_id()+"\";";
+        SQLiteDatabase db = this.getWritableDatabase();
+
+       int c = db.delete(CONTACT_TABLE,CONTACT_ID+" = \""+contact.getContact_id()+"\"",null);
+      if(c == -1){
+          return 0;
+      }return 1;
+
+    }
+
+public String getContactId(String email){
+
+    String queryString = "SELECT "+CONTACT_ID+" FROM " + CONTACT_TABLE + " WHERE "+ CONTACT_EMAIL + " = \""+email+"\"";
+    SQLiteDatabase db = this.getReadableDatabase();
+    String contactid = null;
+    try (Cursor cursor = db.rawQuery(queryString,null)) {
+        cursor.moveToFirst();
+        if (cursor.moveToFirst()) {
+            //if there are result i will loop into the results
+
+            Log.d("contact",">>>>>fouund");
+
+             contactid = cursor.getString(0);
+
+            cursor.close();
+
+        }else{
+            Log.d("contact",">>>>>notfouund");
+        }
+    }catch(Exception e){
+        Log.e("error",e.toString());
+    }
+    return contactid;
+
+
+
+}
+
+
+    public String getContactIdByPhone(String phone){
+
+        String queryString = "SELECT "+CONTACT_ID+" FROM " + CONTACT_TABLE + " WHERE "+ CONTACT_MOBILEPHONE + "="+phone+"";
+        SQLiteDatabase db = this.getReadableDatabase();
+        String contactid = null;
+        try (Cursor cursor = db.rawQuery(queryString,null)) {
+            cursor.moveToFirst();
+            if (cursor.moveToFirst()) {
+                //if there are result i will loop into the results
+
+                Log.d("contact",">>>>>fouund");
+
+                contactid = cursor.getString(0);
+
+                cursor.close();
+
+            }else{
+                Log.d("contact",">>>>>notfouund");
+            }
+        }catch(Exception e){
+            Log.e("error",e.toString());
+        }
+        return contactid;
+
+
+
+    }
+
+    public String getContactName(String contactid){
+        String queryString = "SELECT "+CONTACT_FNAME+","+CONTACT_LNAME+" FROM " + CONTACT_TABLE + " WHERE "+ CONTACT_ID + "=\""+contactid+"\"";
+        SQLiteDatabase db = this.getReadableDatabase();
+        String contactname = null;
+        try (Cursor cursor = db.rawQuery(queryString,null)) {
+            cursor.moveToFirst();
+            if (cursor.moveToFirst()) {
+                //if there are result i will loop into the results
+
+                Log.d("contact",">>>>>fouund");
+               if(cursor.getString(0).equals("null")){
+                   contactname =cursor.getString(1);
+
+            }else{
+                contactname = cursor.getString(0) +" "+cursor.getString(1);
+
+                Log.d("contactName",contactname);
+                cursor.close();
+
+            }}else {
+                Log.d("contact",">>>>>notfouund");
+                contactname = "";
+
+            }
+        }catch(Exception e){
+            Log.e("error",e.toString());
+        }
+        return contactname;
+    }
+
+
+    public ContactModel fetchAllInfo(String id){
+
+        String queryString = "SELECT * FROM " + CONTACT_TABLE + " WHERE "+ CONTACT_ID + " = \""+id+"\"";
+        ContactModel c = null;
+        SQLiteDatabase db = this.getReadableDatabase();
+        try (Cursor cursor = db.rawQuery(queryString,null)) {
+            cursor.moveToFirst();
+            if (cursor.moveToFirst()) {
+                //if there are result i will loop into the results
+
+                Log.d("contact",">>>>>fouund");
+
+                String contactID = cursor.getString(0);
+
+                String contactfname = cursor.getString(1);
+                Log.d("name",contactfname);
+                String contactlname = cursor.getString(2);
+                String contactcompany = cursor.getString(3);
+                String contactjob = cursor.getString(4);
+                String contactemail = cursor.getString(5);
+                String contactmobilephone = cursor.getString(6);
+
+                c = new ContactModel(contactID,contactfname,contactlname,contactcompany,contactjob,contactemail,contactmobilephone);
+                Log.d("contactttt",c.toString());
+                cursor.close();
+
+            }else{
+                c = new ContactModel("","","","","","","");
+            }
+        }catch(Exception e){
+            Log.e("error",e.toString());
+        }
+        return c;
+
+
+
+    }
+
 
 }

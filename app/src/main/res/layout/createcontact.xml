@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+
     android:layout_height="match_parent"
     android:backgroundTintMode="multiply"
     android:theme="@style/Theme.AppCompat.NoActionBar"
@@ -56,16 +57,15 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
                 android:background="@drawable/round_borders"
-                android:baselineAligned="false"
                 android:ems="10"
                 android:hint="firstname"
                 android:inputType="textPersonName"
-
                 android:textAlignment="center"
+
                 android:textColor="#FFFFFF"
                 android:textColorHighlight="#F4F1F1"
-
                 android:textColorHint="#F6F6F6"
+
                 android:textSize="25sp" />
 
             <EditText
@@ -165,7 +165,7 @@
             android:layout_height="88dp"
             android:layout_marginTop="88dp"
             android:background="@drawable/transparent"
-            android:fontFamily="sans-serif-smallcaps"
+
             android:text="do you want to save this contact?"
             android:textColor="@color/javistaOrange"
             android:textSize="36sp"
@@ -210,5 +210,15 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
 
+        <Button
+            android:id="@+id/gotoSaveLogs"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="save this phone call into logs"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="@+id/createStatus"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </FrameLayout>

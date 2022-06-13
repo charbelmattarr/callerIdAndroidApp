@@ -15,6 +15,14 @@
         android:orientation="vertical"
         android:layout_height="wrap_content"
         android:layout_marginTop="100dp">
+        <TextView
+            android:text="Getting Graph Data..."
+            android:textColor="#3f3f3f"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="0dp"
+            android:id="@+id/graphData"
+           />
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -59,6 +67,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="5"
             android:layout_margin="5dp"
+            android:visibility="invisible"
             android:backgroundTint="@color/javistaYellow"
             android:text="Get Graph Data Interactively"
             android:enabled="false"/>
@@ -69,6 +78,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="5"
             android:layout_margin="5dp"
+            android:visibility="invisible"
             android:backgroundTint="@color/javistaYellow"
             android:text="Get Graph Data Silently"
             android:enabled="false"/>
@@ -78,44 +88,39 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
     <TextView
-
+        android:visibility="invisible"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:text="account used : " />
-    <TextView
-        android:text="Getting Graph Data..."
-        android:textColor="#3f3f3f"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="0dp"
-        android:id="@+id/graphData"
-        android:visibility="invisible"/>
 
-    <TextView
-        android:id="@+id/current_user"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
 
-        android:text="Account info goes here..." />
-    <TextView
+        <TextView
+            android:id="@+id/current_user"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:visibility="invisible"
+            android:text="Account info goes here..." />
+
+        <TextView
         android:id="@+id/hello"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-
+        android:visibility="invisible"
         android:text="anonymous user" />
     <TextView
 
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-
+        android:visibility="invisible"
         android:text="whole json file :" />
     <TextView
         android:id="@+id/txt_log"
         android:layout_width="match_parent"
+        android:visibility="invisible"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:layout_weight="0.8"

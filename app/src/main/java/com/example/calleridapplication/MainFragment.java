@@ -53,7 +53,7 @@ public class MainFragment extends Fragment {
     TextView welcome;
     TextView logs;
     Button btngoTo;
-    Button btnfetchcaller;
+    Button btnfetchcaller,btnsaveLogs;
     Dialog dialog;
     public static boolean isSignedIn = false;
     private String[] SCOPES = { "User.Read","Contacts.Read","Contacts.ReadWrite" };
@@ -132,7 +132,7 @@ public class MainFragment extends Fragment {
          dataBaseHelper = new DataBaseHelper(getActivity().getApplicationContext());
         btngoTo = view.findViewById(R.id.goTo);
         btnfetchcaller = view.findViewById(R.id.btnfetchcaller);
-
+        btnsaveLogs = view.findViewById(R.id.opensavelogs);
         btngoTo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -152,7 +152,12 @@ public class MainFragment extends Fragment {
         initializeUI();
 
 
-
+      btnsaveLogs.setOnClickListener(new View.OnClickListener() {
+          @Override
+          public void onClick(View v) {
+              opensaveLogs();
+          }
+      });
 
 
         return view;
@@ -188,7 +193,7 @@ public class MainFragment extends Fragment {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         //displaying the error in toast if occurrs
-                        Toast.makeText(getActivity(), error.getMessage(), Toast.LENGTH_SHORT).show();
+                    //    Toast.makeText(getActivity(), error.getMessage(), Toast.LENGTH_SHORT).show();
                         Log.e("errroor",">>"+error.toString());
                     }
                 });
@@ -224,7 +229,7 @@ public class MainFragment extends Fragment {
                 if(dataBaseHelper.addOne(c)){
                    // Toast.makeText(,"added",Toast.LENGTH_LONG).show();
                 }else{
-                    Toast.makeText(getActivity(),"not added",Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(),"not added",Toast.LENGTH_LONG).show();
                 }
             }
 
@@ -233,5 +238,8 @@ public class MainFragment extends Fragment {
         }
     }
 
-
+public void  opensaveLogs(){
+        Intent i = new Intent(getActivity(),SaveLogsPage.class);
+        getActivity().startActivity(i);
+}
 }

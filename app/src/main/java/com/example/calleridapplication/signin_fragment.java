@@ -54,7 +54,7 @@ public class signin_fragment extends Fragment {
     public static  IGraphServiceClient graphClient;
     public static ISingleAccountPublicClientApplication mSingleAccountApp;
     //public static IGraphServiceClient graphClient;
-
+   static Boolean is_signedin = false;
     Button signInButton;
     Button signOutButton;
     Button callGraphApiInteractiveButton;
@@ -117,7 +117,11 @@ public class signin_fragment extends Fragment {
             @Override
             public void onAccountLoaded(@Nullable IAccount activeAccount){
                 updateUI(activeAccount);
+                if(!is_signedin){
+                mSingleAccountApp.acquireTokenSilentAsync(SCOPES, AUTHORITY, getAuthSilentCallback());
+                //is_signedin=true;
                 newSign=true;
+                }
                 //  openBrowserTabActivity();
 
             }
@@ -126,6 +130,7 @@ public class signin_fragment extends Fragment {
             public void onAccountChanged(@Nullable IAccount priorAccount,@Nullable IAccount currentAccount){
                 if(currentAccount == null){
                     performOperationOnSignOut();
+
                     //      openBrowserTabActivity();
                 }
             }
@@ -158,7 +163,7 @@ public class signin_fragment extends Fragment {
             public void onSuccess(IAuthenticationResult authenticationResult) {
                 /* Successfully got a token, use it to call a protected resource - MSGraph */
                 Log.d("TAG", "Successfully authenticated");
-
+                is_signedin=false;
                 /* Update UI */
                 updateUI(authenticationResult.getAccount());
                 /* call graph */
@@ -184,6 +189,7 @@ public class signin_fragment extends Fragment {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
                 Log.d("TAG", "Successfully authenticated");
+               // is_signedin=true;
                 callGraphAPI(authenticationResult);
             }
             @Override
@@ -259,6 +265,7 @@ public class signin_fragment extends Fragment {
                     callGraphApiInteractiveButton.setEnabled(true);
                     callGraphApiSilentButton.setEnabled(true);
                     currentUserTextView.setText(account.getUsername());
+                    Email = account.getUsername();
                 } else {
                     signInButton.setEnabled(true);
                     signOutButton.setEnabled(false);
@@ -266,6 +273,7 @@ public class signin_fragment extends Fragment {
                     callGraphApiSilentButton.setEnabled(false);
                     currentUserTextView.setText("");
                     logTextView.setText("");
+                    is_signedin=false;
                 }
 
                 //Sign in user
@@ -287,7 +295,7 @@ public class signin_fragment extends Fragment {
         });
     }
     private  void displayGraphResult(@NonNull final JsonObject graphResponse) {
-
+        is_signedin=true;
 
         getActivity().runOnUiThread(new Runnable() {
             @Override
@@ -303,10 +311,11 @@ public class signin_fragment extends Fragment {
     }
     private  void parsingJson(@NonNull final JsonObject graphResponse){
         if(!graphResponse.equals(null)){
+            is_signedin=true;
             JsonObject owner=graphResponse.getAsJsonObject("owner");
             JsonObject user = owner.getAsJsonObject("user");
-            displayName = user.get("displayName").toString();
-            Email = user.get("email").toString();
+            displayName = user.get("displayName").toString().replaceAll("\"","").trim();
+            Email = user.get("email").toString().replaceAll("\"","").trim();
             if(!displayName.isEmpty() ){
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
@@ -338,7 +347,7 @@ public class signin_fragment extends Fragment {
     private void performOperationOnSignOut() {
         final String signOutText = "Signed Out.";
         currentUserTextView.setText("");
-
+        is_signedin=false;
         logTextView.setText("");
         signed=0;
         getgraph=false;
@@ -350,7 +359,7 @@ public class signin_fragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-
+    is_signedin=false;
          view = inflater.inflate(R.layout.fragment_signin_fragment, container, false);
           if(view == null)Log.e("EMT VW","EMT VIEW");
 
@@ -397,6 +406,7 @@ public class signin_fragment extends Fragment {
                     return;
                 }
                 mSingleAccountApp.signIn(getActivity(), null, SCOPES, getAuthInteractiveCallback());
+
                 newSign=true;
 
             }
