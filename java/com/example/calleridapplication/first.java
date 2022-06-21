@@ -40,6 +40,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -81,11 +82,15 @@ public class first extends AppCompatActivity implements NavigationView.OnNavigat
     public static boolean isSignedIn = false;
     NavigationView navigationView;
     public static View mHeaderView;
+    TextView signinStatus;
+    Toolbar toolbar;
     private static final String TAG = callReciever.class.getSimpleName();
      DrawerLayout drawerLayout ;
      ImageView dehaze;
+    public static ISingleAccountPublicClientApplication mSingleAccountApp;
     DataBaseHelper dataBaseHelper;
-
+    DataBaseHelper3 dataBaseHelper3;
+    ProgressBar progressBar;
     public static boolean firsttoCreate=false;
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -94,54 +99,25 @@ public class first extends AppCompatActivity implements NavigationView.OnNavigat
         super.onCreate(savedInstanceState);
         setContentView(R.layout.browsertab_activity);
         dataBaseHelper = new DataBaseHelper(first.this);
+        dataBaseHelper3 = new DataBaseHelper3(first.this);
         initializeUI();
         checkOverlayPermission();
-
+       signinStatus =findViewById(R.id.signinstatus);
+       progressBar = (ProgressBar)findViewById(R.id.progressBarDrawer);
 
         this.stopService(new Intent(this, ForegroundService.class));
          startService2();
-
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG)
+                != PackageManager.PERMISSION_GRANTED ){
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_CALL_LOG},1);
+        }
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
+                != PackageManager.PERMISSION_GRANTED ){
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_PHONE_STATE},0);
+        }
         // startService();
-   if(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
-                != PackageManager.PERMISSION_GRANTED  ){
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.READ_PHONE_STATE},1);
-        }
-     if( ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_NUMBERS)
-        != PackageManager.PERMISSION_GRANTED ){
-            ActivityCompat.requestPermissions(this,
-            new String[]{Manifest.permission.READ_PHONE_NUMBERS},1);
-    }
-
-
-         if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_NETWORK_STATE)
-              != PackageManager.PERMISSION_GRANTED){
-                ActivityCompat.requestPermissions(this,
-            new String[]{Manifest.permission.ACCESS_NETWORK_STATE},1);
-                        }
-
-        if(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG)
-                != PackageManager.PERMISSION_GRANTED ){
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.READ_CALL_LOG},1);
-        }
-        if(ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE)
-                != PackageManager.PERMISSION_GRANTED ){
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.CALL_PHONE},1);
-        }
-
-        if(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_NUMBERS)
-                != PackageManager.PERMISSION_GRANTED ){
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.READ_CALL_LOG},1);
-        }
-
-
-        if(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG)
-               == PackageManager.PERMISSION_GRANTED ){
-            fetchLogs();
-        }
 
 
         if(CallLogsAdapter.openCreate){
@@ -150,7 +126,10 @@ public class first extends AppCompatActivity implements NavigationView.OnNavigat
             Log.d("idinfirst",ids);
 
             openCreateContactsFragment2(ids);
-
+if(relatedCallLogs.openCallLogs) {
+    openCallLogsFragment();
+    return;
+}
         }
 if(ContactsAdapter.openContactFrag){
 
@@ -160,7 +139,7 @@ if(ContactsAdapter.openContactFrag){
       //      Log.d("using","openCreate");
 
      //         openCreateContactsFragment();
-
+return;
        }
        // openCallLogsFragment();
         //  openSignInFragment();
@@ -168,7 +147,7 @@ if(ContactsAdapter.openContactFrag){
             Log.d("using","window.found");
             Window.found=false;
             openCreateContactsFragment();
-
+return;
         }
 
 if(callReciever.openedOnNotFound){
@@ -176,10 +155,36 @@ if(callReciever.openedOnNotFound){
    Log.d("using","openedOnNotFound");
     firsttoCreate=true;
     openCreateContactsFragment();
-
+return;
    // callReciever.openedOnNotFound=false;
 
 }
+openCallLogsFragment();
+/*
+        PublicClientApplication.createSingleAccountPublicClientApplication(first.this, R.raw.auth_config_single_account,new IPublicClientApplication.ISingleAccountApplicationCreatedListener(){
+            @Override
+            public void onCreated(ISingleAccountPublicClientApplication application){
+
+                if(first.this == null) Log.e("EMT","EMT");
+                signinStatus.setVisibility(View.VISIBLE);
+                mSingleAccountApp = application;
+                signinStatus.setVisibility(View.GONE);
+                openSignInFragment();
+            }
+            @Override
+            public void onError(MsalException exception){
+                signinStatus.setVisibility(View.VISIBLE);
+                Toast.makeText(first.this,exception.toString(),Toast.LENGTH_LONG).show();
+
+            }
+        });
+*/
+        if(!dataBaseHelper3.getUser().getName().equals("")){
+            TextView userName = first.mHeaderView.findViewById(R.id.userName);
+            TextView userEmail = first.mHeaderView.findViewById(R.id.userEmail);
+            userName.setText(dataBaseHelper3.getUser().getName());
+            userEmail.setText(dataBaseHelper3.getUser().getEmail());
+        }
     }
 
 
@@ -187,8 +192,9 @@ if(callReciever.openedOnNotFound){
     private void initializeUI(){
        drawerLayout = findViewById(R.id.drawerLayout);
        dehaze = findViewById(R.id.ImageMenu);
-        Toolbar toolbar = findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar,
                 (R.string.open_drawer), (R.string.Close_navigation_drawer));
         drawerLayout.addDrawerListener(toggle);
@@ -212,29 +218,37 @@ if(callReciever.openedOnNotFound){
        });**/
          }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
+
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
      switch(item.getItemId()){
       //   case R.id.mainFragment:
       ///       openMainFragment();
        //      break;
+
          case R.id.nav_signin:
+             item.setChecked(true);
+             if(signin_fragment.is_signedin){
+                 item.setTitle("Sign out");
+             }
              openSignInFragment();
+
              break;
      //    case R.id.log_calls:
      //        fetchLogs();
      //        break;
       case R.id.nav_contacts:
+          item.setChecked(true);
             openContactFragment();
            break;
-         case R.id.nav_createContacts:
-             openCreateContactsFragment();
-             break;
+
          case R.id.nav_updateDB:
+             item.setChecked(true);
+             showProgressBar();
              fetchAllContacts();
              break;
          case R.id.phonecalls:
+             item.setChecked(true);
              openCallLogsFragment();
              break;
             }
@@ -243,28 +257,43 @@ if(callReciever.openedOnNotFound){
         return true;
      }
 
+
     private void openCallLogsFragment() {
-        CallLogsFrag frag = CallLogsFrag.newInstance();
-        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,frag).commit();
         navigationView.setCheckedItem(R.id.opensavelogs);
+        toolbar.setTitle("Phone Calls");
+        CallLogsFrag frag = CallLogsFrag.newInstance();
+
+     //   navigationView.setItemTextColor(ColorStateList.valueOf(first.this.getResources().getColor(R.color.blue)));
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,frag).commit();
+
 
     }
 
-    @SuppressLint("ResourceAsColor")
+
     private  void openCreateContactsFragment() {
+        toolbar.setTitle("Create Contact");
         createContact frag = createContact.newInstance();
+
+    //    navigationView.setItemTextColor(ColorStateList.valueOf(first.this.getResources().getColor(R.color.blue)));
+     //   navigationView.setItemIconTintList(ColorStateList.valueOf(first.this.getResources().getColor(R.color.blue)));
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,frag).commit();
-        navigationView.setCheckedItem(R.id.nav_createContacts);
+
     }
     private  void openCreateContactsFragment2(String id) {
+        toolbar.setTitle("Create Contact");
         createContact2 frag = createContact2.newInstance(id);
+
+      //  navigationView.setItemTextColor(ColorStateList.valueOf(first.this.getResources().getColor(R.color.blue)));
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,frag).commit();
-        navigationView.setCheckedItem(R.id.nav_createContacts);
+
     }
     private void openContactFragment() {
+        toolbar.setTitle("Contacts");
+        navigationView.setCheckedItem(R.id.nav_contacts);
         Contacts frag = Contacts.newInstance();
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,frag).commit();
-        navigationView.setCheckedItem(R.id.nav_contacts);
+    //    navigationView.setItemTextColor(ColorStateList.valueOf(first.this.getResources().getColor(R.color.blue)));
+
     }
 
     private void openBottomFragment() {
@@ -279,9 +308,12 @@ if(callReciever.openedOnNotFound){
     }
 
     private void openSignInFragment() {
-        signin_fragment frag = signin_fragment.newInstance();
-        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,frag).commit();
+        toolbar.setTitle("Sign in");
         navigationView.setCheckedItem(R.id.nav_signin);
+        signin_fragment frag = signin_fragment.newInstance();
+ //       navigationView.setItemTextColor(ColorStateList.valueOf(first.this.getResources().getColor(R.color.blue)));
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,frag).commit();
+
     }
 
     private void openMainFragment() {
@@ -427,10 +459,11 @@ if(callReciever.openedOnNotFound){
         JSONObject jsonObject = null;
         try {
             jsonObject = new JSONObject(response);
-
+            int size = 100;
             //   if(jsonObject.getString("status").equals("true")){
             JSONArray callerid = jsonObject.getJSONArray("value");
-            for (int i = 0; i < callerid.length(); i++) {
+      //      for (int i = 0; i < callerid.length(); i++) {
+            for (int i = 0; i < size; i++) {
                 //    String name,JobTitle,Company,etag,contactid;
                 JSONObject dataobj = callerid.getJSONObject(i);
                 firstname =dataobj.getString("firstname");
@@ -450,10 +483,11 @@ if(callReciever.openedOnNotFound){
         } catch (JSONException e) {
             e.printStackTrace();
         }
+        hideProgressBar();
     }
     public void startService2(){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // check if the user has already granted
+            // check if the user has already granted$^$
             // the Draw over other apps permission
             if(Settings.canDrawOverlays(this)) {
                 // start the service based on the android version
@@ -469,6 +503,27 @@ if(callReciever.openedOnNotFound){
             Toast.makeText(first.this,"build version azghar mn .M",Toast.LENGTH_LONG).show();
             startService(new Intent(first.this, ForegroundService2.class));
         }
+    }
+
+    private void showProgressBar() {
+
+        first.this.findViewById(R.id.progressBarDrawer)
+                .setVisibility(View.VISIBLE);
+        first.this.findViewById(R.id.fragment_container)
+                .setEnabled(false);
+        first.this.findViewById(R.id.fragment_container)
+                .setVisibility(View.INVISIBLE);
+
+    }
+
+    private void hideProgressBar() {
+
+        first.this.findViewById(R.id.progressBarDrawer)
+                .setVisibility(View.GONE);
+        first.this.findViewById(R.id.fragment_container)
+                .setEnabled(true);
+        first.this.findViewById(R.id.fragment_container)
+                .setVisibility(View.VISIBLE);
     }
 }
 

@@ -37,7 +37,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -51,6 +54,7 @@ public class Window4Api extends AppCompatActivity {
     List<EmailModel> list = null;
     EmailModel emailsss;
     Button fetchEmails;
+    Button openInApp;
     String time;
     LinearLayout bottomsheetWannabe;
     String[] EmailSubjects = {};
@@ -86,6 +90,7 @@ public class Window4Api extends AppCompatActivity {
         companycaller = findViewById(R.id.companycaller1);
         jobcaller = findViewById(R.id.jobcaller1);
         emailList = findViewById(R.id.emailList1);
+        openInApp =  findViewById(R.id.openinapp1);
         loadListView(list);
         //  idcaller = findViewById(R.id.idcaller);
         // recentMailscaller = findViewById(R.id.recentMailscaller);
@@ -131,10 +136,23 @@ public class Window4Api extends AppCompatActivity {
         found =true;
         Log.d("window.found",String.valueOf(found));
         updateLayout2(contactFound.getContact_fname(),contactFound.getContact_lname(),contactFound.getContact_job(),contactFound.getContact_company());
+        openInApp.setVisibility(View.VISIBLE);
+        openInApp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openApp(contactFound.getContact_id());
+            }
+        });
         getTokenForGraph(contactFound.getContact_email());
 
     }
+    private void openApp(String contact_id) {
+        Intent i = new Intent(Window4Api.this,relatedCallLogs.class);
+        i.putExtra("id",contact_id);
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        Window4Api.this.startActivity(i);
 
+    }
     public void getTokenForGraph(String email){
 
         if (signin_fragment.mSingleAccountApp == null){
@@ -232,9 +250,23 @@ public class Window4Api extends AppCompatActivity {
                     .parseLong(String.valueOf(date))));
             Log.d("unmodified","date: "+time);
          Log.d("time",dateString);
-*/
-            emailsss = new EmailModel(subject,time);
-            Emails.add(emailsss);
+*/ try {
+                SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                SimpleDateFormat outputFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm aa");
+                Date date = null;
+
+                date = inputFormat.parse(time);
+
+                String dateString = outputFormat.format(date);
+                System.out.println(dateString);
+                Log.d("time",dateString);
+
+                emailsss = new EmailModel(subject,dateString);
+                Emails.add(emailsss);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
         }
         loadListView(Emails);
 
@@ -323,6 +355,13 @@ public class Window4Api extends AppCompatActivity {
             //    etag = dataobj.getString("@odata.etag");
             email = dataobj.getString("emailaddress1");
             contactFound = new ContactModel(contactid,name,lname,Company,Company,email,mobilephone);
+            openInApp.setVisibility(View.VISIBLE);
+            openInApp.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    openApp(contactFound.getContact_id());
+                }
+            });
             if(Window.contactFound.getContact_id().equals(null)||Window.contactFound.getContact_id().isEmpty()){
                 Log.d("jsonnn","empty");
             }else{

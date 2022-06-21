@@ -62,6 +62,7 @@ public class createContact2 extends Fragment {
     String URLline;
     CallLogs cl2=null;
     String ids;
+    Button cancel;
     static Boolean openFromCreate = false;
     public static ContactModel contactfound = null;
     public String APIURL ="https://calleridcrmapi.azure-api.net/test/contacts/";
@@ -128,6 +129,7 @@ public class createContact2 extends Fragment {
         btnCreateContact = view.findViewById(id.createContact2);
         createStatus = view.findViewById(id.createStatus2);
         gotoSaveLogs = view.findViewById(id.gotoSaveLogs2);
+        cancel = view.findViewById(id.button3);
         createStatus.setText("");
         ETfirstname.setText("");
         ETlastname.setText("");
@@ -139,7 +141,18 @@ public class createContact2 extends Fragment {
         dataBaseHelper = new DataBaseHelper(getActivity().getApplicationContext());
         dataBaseHelper2 = new DataBaseHelper2(getActivity().getApplicationContext());
         gotoSaveLogs.setVisibility(View.GONE);
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        getActivity().finish();
+                    }
+                });
 
+            }
+        });
         Log.d("ids",mParam1);
 
         cl2=dataBaseHelper2.getLoginfo(mParam1);
@@ -150,19 +163,29 @@ public class createContact2 extends Fragment {
         btnCreateContact.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showProgressBar();
+                cancel.setVisibility(View.GONE);
+
                 firstname=ETfirstname.getText().toString().trim();
                 lastname=ETlastname.getText().toString().trim();
                 company=ETcompany.getText().toString().trim();
                 job=ETjob.getText().toString().trim();
                 email=ETemail.getText().toString().trim();
                 mobilephone=ETphonenumber.getText().toString().trim();
-
+                if(!email.isEmpty()) {
+                //    String email_regex = "[A-Z]+[a-zA-Z_]+@\b([a-zA-Z]+.){2}\b?.[a-zA-Z]+";
+                    String email_regex ="^[A-Za-z0-9+_.-]+@(.+)$";
+                    if(!email.matches(email_regex)) {
+                        createStatus.setTextColor(createContact2.this.getResources().getColor(R.color.red));
+                        createStatus.setText("bad email format!");
+                        return;
+                    }
+                }
                 if(firstname.isEmpty() || lastname.isEmpty() || mobilephone.isEmpty()){
 
                     Toast.makeText(getActivity(),"make sure that all required fields are there!",Toast.LENGTH_LONG).show();
                     return;
                 }
+                showProgressBar();
                 //this one is using volley
                 //   createContactinCRM1(firstname,lastname,company,job,email,mobilephone);
                 getActivity().runOnUiThread(new Runnable() {
@@ -185,6 +208,8 @@ public class createContact2 extends Fragment {
         gotoSaveLogs.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                getActivity().finish();
                 gotosaveLogsPage();
             }
         });
@@ -205,6 +230,7 @@ public class createContact2 extends Fragment {
                 contactid = contactfound.getContact_id();
                 Log.d("ids",contactfound.getContact_id());
                 getActivity().startActivity(i);
+                getActivity().finish();
             }
         });
 
@@ -293,8 +319,8 @@ public class createContact2 extends Fragment {
                         .build();
                 MediaType mediaType = MediaType.parse("application/json");
                 RequestBody body = RequestBody.create(mediaType, "{" +
-                        "\r\n\"firstname\": \""+firstname.trim()+"\"\r\n," +
-                        "\r\n \"lastname\": \""+lastname.trim()+"\"\r\n," +
+                        "\r\n\"firstname\": \""+firstname.toUpperCase().trim().charAt(0)+""+firstname.substring(1).trim()+"\"\r\n," +
+                        "\r\n \"lastname\": \""+lastname.toUpperCase().trim()+"\"\r\n," +
                         "\r\n    \"cr051_companyname\": \""+company.trim()+"\"\r\n," +
                         "\r\n    \"emailaddress1\": \""+email.trim()+"\"\r\n," +
                         "\r\n    \"jobtitle\": \""+job.trim()+"\"\r\n," +
@@ -443,8 +469,10 @@ public class createContact2 extends Fragment {
                         callReciever.openedOnNotFound = false;
                         gotoSaveLogs.setEnabled(true);
                         gotoSaveLogs.setVisibility(View.VISIBLE);
+
                         Log.d("page","should go back");
-                    }else {
+                    }
+                    else {
                         Log.d("EERRROOOR","added to DATABASE");
                     }
 
@@ -703,6 +731,7 @@ public class createContact2 extends Fragment {
                 ContactModel c = new ContactModel(contactid,lastname,firstname,company,jobTitle,email,mobilephone);
                 if(dataBaseHelper.addOne(c)){
                     // Toast.makeText(,"added",Toast.LENGTH_LONG).show();
+
                 }else{
                     Toast.makeText(getContext(),"not added",Toast.LENGTH_LONG).show();
                 }

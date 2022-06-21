@@ -77,7 +77,7 @@ DataBaseHelper dt;
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_call_logs, container, false);
-        fetchLogs();
+       // fetchLogs();
         dt2 =  new DataBaseHelper2(getActivity().getApplicationContext());
         dt = new DataBaseHelper(getActivity().getApplicationContext());
       //  fetchLogs();

@@ -15,18 +15,25 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
 import com.example.CallerIdApplication.R;
 import com.microsoft.identity.client.AuthenticationCallback;
+import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
+import com.microsoft.identity.client.IPublicClientApplication;
+import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
+import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 
 import java.io.IOException;
@@ -57,10 +64,13 @@ public class SaveLogsPage extends AppCompatActivity {
     String dateString;
     Boolean directionBoolean = true;
     String id;
+    public static ISingleAccountPublicClientApplication mSingleAccountApp;
+    Button cancel;
+    Button savephonecall;
     ContactModel contactFound;
     private final static String[] SCOPES = {"Files.Read","Mail.Read"};
     String useremail;
-   // String secondPersonContactid = Window.contactid;
+    // String secondPersonContactid = Window.contactid;
     String secondPersonContactid="858576c3-59db-ec11-bb3d-000d3a66d2a8";
     String number = Window.numberToFetch;
     TextView durationTxtView;
@@ -68,8 +78,8 @@ public class SaveLogsPage extends AppCompatActivity {
     String duration,time,date;
     DataBaseHelper dataBaseHelper;
     DataBaseHelper2 dataBaseHelper2;
-    TextView logsStatus,contact,phonrNumber,timeDate;
-     EditText subject;
+    TextView logsStatus,logstatus1,contact,phonrNumber,timeDate;
+    EditText subject;
     LinearLayout logsCardView;
     String direction;
 
@@ -81,31 +91,41 @@ public class SaveLogsPage extends AppCompatActivity {
         setContentView(R.layout.savelog_layout);
         dataBaseHelper = new DataBaseHelper(SaveLogsPage.this);
         dataBaseHelper2 = new DataBaseHelper2(SaveLogsPage.this);
-
-      if(Window.found){
-contactFound=Window.contactFound;
-      }else if(createContact.openFromCreate){
-          contactFound = createContact.contactfound;
-      }else if(createContact2.openFromCreate){
-          contactFound = createContact2.contactfound;
-      }else if(Window4Api.found) {
-          contactFound = Window4Api.contactFound;
-      }
+        getAccount();
+        if(Window.found){
+            contactFound=Window.contactFound;
+        }else if(createContact.openFromCreate){
+            contactFound = createContact.contactfound;
+        }else if(createContact2.openFromCreate){
+            contactFound = createContact2.contactfound;
+        }else if(Window4Api.found) {
+            contactFound = Window4Api.contactFound;
+        }
         // set onClickListener on the remove button, which removes
         // the view from the window
 
         logsCardView = findViewById(R.id.logscardView);
+        logstatus1 = findViewById(R.id.logsStatus1);
         ETdescription = findViewById(R.id.description);
-       // contact=findViewById(R.id.contact);
+        // contact=findViewById(R.id.contact);
         timeDate = findViewById(R.id.date);
         contact = findViewById(R.id.ctct);
         phonrNumber = findViewById(R.id.phNumber);
         durationTxtView =findViewById(R.id.duration);
         logsStatus = findViewById(R.id.logsStatus);
         subject = findViewById(R.id.subject);
+        cancel = findViewById(R.id.cancel);
+        savephonecall =findViewById(R.id.savephonecall);
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
 
+                SaveLogsPage.this.finish();
+                Intent i = new Intent(SaveLogsPage.this,first.class);
 
-      //subject.setTextColor(Integer.parseInt("0x00FF00"));//green
+            }
+        });
+        //subject.setTextColor(Integer.parseInt("0x00FF00"));//green
 
         ETdescription.setText("");
         // contact=findViewById(R.id.contact);
@@ -120,12 +140,9 @@ contactFound=Window.contactFound;
                 if(!createContact2.openFromCreate) {
                     fetchLogs();
                 }
-
             }
 
-}
-
-
+        }
 
         if(CallLogsAdapter.openedfromfrag || createContact2.openFromCreate ){
 
@@ -138,115 +155,91 @@ contactFound=Window.contactFound;
         }
 
         //durationTxtView.setText(callDuration);
-      //  contact.setText("Call with : \n"+Window.contactFound.getContact_fname()+" " +Window.contactFound.getContact_lname()+"\n "+Window.contactFound.getContact_job()+"@"+Window.contactFound.getContact_company());
+        //  contact.setText("Call with : \n"+Window.contactFound.getContact_fname()+" " +Window.contactFound.getContact_lname()+"\n "+Window.contactFound.getContact_job()+"@"+Window.contactFound.getContact_company());
 
-if(signin_fragment.is_signedin){
-       // contact.setText( signin_fragment.Email.replaceAll("\"","").trim());
+        if(signin_fragment.is_signedin){
+            // contact.setText( signin_fragment.Email.replaceAll("\"","").trim());
 
-}
+        }
 
-        findViewById(R.id.savephonecall).setOnClickListener(new View.OnClickListener() {
+        savephonecall.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
             public void onClick(View view) {
-
+if(subject.getText().toString().isEmpty()){
+    logstatus1.setVisibility(View.VISIBLE);
+    logstatus1.setText("please enter a subject");
+    return;
+}
                 if(CallLogsAdapter.openedfromfrag){
-                    if(signin_fragment.is_signedin){
-                        useremail = signin_fragment.Email.replaceAll("\"","").trim();
+
+                        //useremail = signin_fragment.Email.replaceAll("\"","").trim();
 
                         String sub = subject.getText().toString().trim();
                         desc = ETdescription.getText().toString().trim();
-                       saveLogs(sub,desc,Integer.parseInt(cl.getDuration()),cl.getPhoneNbre(),cl.getDate(), Boolean.valueOf(cl.getDirection()));
-                      //  dataBaseHelper2.modifySaved(cl.getDate());
+                        saveLogs(sub,desc,Integer.parseInt(cl.getDuration()),cl.getPhoneNbre(),cl.getDate(), Boolean.valueOf(cl.getDirection()));
+                        //  dataBaseHelper2.modifySaved(cl.getDate());
                         CallLogsAdapter.openedfromfrag = false;
-                  //  logsStatus.setTextColor(0xFFFF0000);
-               //     logsStatus.setText("you need to sign in before u save a log call!");
-                    }else {
+                        //  logsStatus.setTextColor(0xFFFF0000);
+                        //     logsStatus.setText("you need to sign in before u save a log call!");
 
-                        durationTxtView.setText("error");
-                        ETdescription.setText("error");
-                        logsCardView.setVisibility(View.GONE);
-                        logsStatus.setTextColor(0xFFFF0000);
-                        logsStatus.setText("you need to sign in before u save a log call!");
-                        logsStatus.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                signIn();
-                            }
-                        });
-                        CallLogsAdapter.openedfromfrag = false;
-                    }
                 }else{
-                if(signin_fragment.is_signedin){
-                    //opening from call
-                    // -> straight yaane contact found
-                    //aw after creation of contact
-                  if(createContact.openFromCreate ||createContact2.openFromCreate){
-                      useremail = signin_fragment.Email.replaceAll("\"","").trim();
-                      String subs =  subject.getText().toString().trim();
-                      desc = ETdescription.getText().toString().trim();
-                      subject.setText("");
-                      ETdescription.setText("");
-                      // contact=findViewById(R.id.contact);
-                      String timedate=  timeDate.getText().toString();
-                      // contact.getText().toString().trim();
-                      String phone=  phonrNumber.getText().toString().trim();
 
-                      String durations = durationTxtView.getText().toString().trim();
-                       if(durations.equals("MISSED")) {
-                           Log.d("timedate ",timedate);
-                           //saveLogs(subs,desc,Integer.parseInt(durations),phone,timedate, Boolean.valueOf(direction));
-                           saveLogs(subs,desc, 0,phone,timedate,directionBoolean);
+                        //opening from call
+                        // -> straight yaane contact found
+                        //aw after creation of contact
+                        if(createContact.openFromCreate ||createContact2.openFromCreate){
+                        //    useremail = signin_fragment.Email.replaceAll("\"","").trim();
+                            String subs =  subject.getText().toString().trim();
+                            desc = ETdescription.getText().toString().trim();
+                            subject.setText("");
+                            ETdescription.setText("");
+                            // contact=findViewById(R.id.contact);
+                            String timedate=  timeDate.getText().toString();
+                            // contact.getText().toString().trim();
+                            String phone=  phonrNumber.getText().toString().trim();
 
-                       }else {
-                           Log.d("timedate ",timedate);
-                           //saveLogs(subs,desc,Integer.parseInt(durations),phone,timedate, Boolean.valueOf(direction));
-                           saveLogs(subs,desc, Integer.parseInt(durations),phone,timedate,directionBoolean);
-                           }
+                            String durations = durationTxtView.getText().toString().trim();
+                            if(durations.equals("MISSED")) {
+                                Log.d("timedate ",timedate);
+                                //saveLogs(subs,desc,Integer.parseInt(durations),phone,timedate, Boolean.valueOf(direction));
+                                saveLogs(subs,desc, 0,phone,timedate,directionBoolean);
 
-                      createContact.openFromCreate=false;
-                      createContact2.openFromCreate=false;
+                            }else {
+                                Log.d("timedate ",timedate);
+                                //saveLogs(subs,desc,Integer.parseInt(durations),phone,timedate, Boolean.valueOf(direction));
+                                saveLogs(subs,desc, Integer.parseInt(durations),phone,timedate,directionBoolean);
+                            }
 
-                  }else{
-                   useremail = signin_fragment.Email.replaceAll("\"","").trim();
+                            createContact.openFromCreate=false;
+                            createContact2.openFromCreate=false;
 
-                    desc = ETdescription.getText().toString().trim();
+                        }else{
+                           // useremail = signin_fragment.Email.replaceAll("\"","").trim();
 
-                    ETdescription.setText("");
-                    // contact=findViewById(R.id.contact);
-                  String timedate=  timeDate.getText().toString().trim();
-                   // contact.getText().toString().trim();
-                  String phone=  phonrNumber.getText().toString().trim();
-                  String durations = durationTxtView.getText().toString().trim();
-                      String subs =  subject.getText().toString().trim();
-                 if(durations.equals("MISSED")) {
+                            desc = ETdescription.getText().toString().trim();
 
-                     saveLogs(subs,desc,0,phone,timedate,directionBoolean);
-                 }else {
+                            ETdescription.setText("");
+                            // contact=findViewById(R.id.contact);
+                            String timedate=  timeDate.getText().toString().trim();
+                            // contact.getText().toString().trim();
+                            String phone=  phonrNumber.getText().toString().trim();
+                            String durations = durationTxtView.getText().toString().trim();
+                            String subs =  subject.getText().toString().trim();
+                            if(durations.equals("MISSED")) {
 
-                     saveLogs(subs,desc,Integer.parseInt(durations),phone,timedate,directionBoolean);
-                 }
+                                saveLogs(subs,desc,0,phone,timedate,directionBoolean);
+                            }else {
 
-                  }
+                                saveLogs(subs,desc,Integer.parseInt(durations),phone,timedate,directionBoolean);
+                            }
 
-                }else {
-
-                    durationTxtView.setText("error");
-                    ETdescription.setText("error");
-                    logsCardView.setVisibility(View.GONE);
-                    logsStatus.setTextColor(0xFFFF0000);
-                    logsStatus.setText("you need to sign in before u save a log call!");
-                    logsStatus.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            signIn();
                         }
-                    });
-                }
 
-                
+                    }
+            }
 
-            }}
+
         });
 
 
@@ -262,7 +255,7 @@ if(signin_fragment.is_signedin){
 
     private void signIn() {
 
-      //  signin_fragment.mSingleAccountApp.signIn(SaveLogsPage.this, null, SCOPES, getAuthInteractiveCallback());
+        //  signin_fragment.mSingleAccountApp.signIn(SaveLogsPage.this, null, SCOPES, getAuthInteractiveCallback());
     }
 
     private void saveLogs(String sub,String desc, int duration, String phNumber, String dateFormat1,Boolean direction) {
@@ -270,13 +263,15 @@ if(signin_fragment.is_signedin){
         logsCardView.setEnabled(false);
         String userContactid = null;
 //if(createContact.openFromCreate ){
- //   createContact.openFromCreate = false;
- //    userContactid = createContact.contactid;
+        //   createContact.openFromCreate = false;
+        //    userContactid = createContact.contactid;
 //}else if(createContact2.openFromCreate ){
-  ///          createContact2.openFromCreate = false;
-  //          userContactid = createContact2.contactid;
-   //     }else{
-        userContactid = fetchContactid(signin_fragment.Email);
+        ///          createContact2.openFromCreate = false;
+        //          userContactid = createContact2.contactid;
+        //     }else{
+
+        System.out.print("useremail" +useremail);
+        userContactid = fetchContactid(useremail);
 //}
         // String userContactid ="cdcfa450-cb0c-ea11-a813-000d3a1b1223";
 
@@ -284,48 +279,48 @@ if(signin_fragment.is_signedin){
         OkHttpClient client = new OkHttpClient().newBuilder()
                 .build();
         MediaType mediaType = MediaType.parse("application/json");
-            RequestBody body=null;
+        RequestBody body=null;
 
-if(direction)
-{
-    //outgoing
-    body = RequestBody.create(mediaType," {   \"subject\": \" "+sub+"\",\n" +
-            "    \"phonenumber\": \""+phNumber+"\",\n" +
-            "    \"description\": \""+desc+"\",\n" +
-            "    \"directioncode\": "+direction+", //Direction : 0-->False/Incomming, 1-->True/Outgoing,\n" +
-            "    \"scheduledstart\":\""+dateFormat1+"\",\n" +
-            "    \"actualdurationminutes\":\""+duration+"\",\n" +
-            "   \"regardingobjectid_contact@odata.bind\": \"/contacts("+userContactid+")\", //Regarding is a contact\n" +
-            "    \"phonecall_activity_parties\": [\n" +
-            "       {\n" +
-            "            \"partyid_contact@odata.bind\": \"/contacts("+userContactid+")\", // call started by a sustemuser\n" +
-            "            \"participationtypemask\" : 1 // From\n" +
-            "        },\n" +
-            "        {\n" +
-            "            \"partyid_contact@odata.bind\": \"/contacts("+clientContactid+")\", // call to by a contact\n" +
-            "            \"participationtypemask\": 2 // To\n" +
-            "        }\n" +
-            "    ]}");
+        if(direction)
+        {
+            //outgoing
+            body = RequestBody.create(mediaType," {   \"subject\": \" "+sub+"\",\n" +
+                    "    \"phonenumber\": \""+phNumber+"\",\n" +
+                    "    \"description\": \""+desc+"\",\n" +
+                    "    \"directioncode\": "+direction+", //Direction : 0-->False/Incomming, 1-->True/Outgoing,\n" +
+                    "    \"scheduledstart\":\""+dateFormat1+"\",\n" +
+                    "    \"actualdurationminutes\":\""+duration+"\",\n" +
+                    "   \"regardingobjectid_contact@odata.bind\": \"/contacts("+userContactid+")\", //Regarding is a contact\n" +
+                    "    \"phonecall_activity_parties\": [\n" +
+                    "       {\n" +
+                    "            \"partyid_contact@odata.bind\": \"/contacts("+userContactid+")\", // call started by a sustemuser\n" +
+                    "            \"participationtypemask\" : 1 // From\n" +
+                    "        },\n" +
+                    "        {\n" +
+                    "            \"partyid_contact@odata.bind\": \"/contacts("+clientContactid+")\", // call to by a contact\n" +
+                    "            \"participationtypemask\": 2 // To\n" +
+                    "        }\n" +
+                    "    ]}");
 
-}else{
+        }else{
 
-    body = RequestBody.create(mediaType, "{    \"subject\": \""+sub+"\",\r\n  " +
-            "  \"phonenumber\": \""+phNumber+"\",\r\n   " +
-            " \"description\": \""+desc+"\",\r\n " +
-            "  \"directioncode\": "+directionBoolean+", //Direction : 0-->False/Incomming, 1-->True/Outgoing,\r\n  " +
-            "  \"scheduledstart\":\""+dateFormat1+"\",\r\n    \"actualdurationminutes\":\"50\",\r\n  " +
-            "    \"actualdurationminutes\":\""+duration+"\",\n" +
-            " \"regardingobjectid_contact@odata.bind\": \"/contacts("+userContactid+")\", " +
-            "//Regarding is a contact\r\n   " +
-            " \"phonecall_activity_parties\": [\r\n       {\r\n     " +
-            "       \"partyid_contact@odata.bind\": \"/contacts("+clientContactid+")\", " +
-            "// call started by a sustemuser\r\n         " +
-            "   \"participationtypemask\" : 1 // From\r\n        },\r\n        {\r\n      " +
-            "      \"partyid_contact@odata.bind\": \"/contacts("+userContactid+")\"," +
-            "// call to by a contact\r\n       " +
-            "     \"participationtypemask\": 2 // To\r\n        }\r\n    ]\r\n    }");
+            body = RequestBody.create(mediaType, "{    \"subject\": \""+sub+"\",\r\n  " +
+                    "  \"phonenumber\": \""+phNumber+"\",\r\n   " +
+                    " \"description\": \""+desc+"\",\r\n " +
+                    "  \"directioncode\": "+directionBoolean+", //Direction : 0-->False/Incomming, 1-->True/Outgoing,\r\n  " +
+                    "  \"scheduledstart\":\""+dateFormat1+"\",\r\n    \"actualdurationminutes\":\"50\",\r\n  " +
+                    "    \"actualdurationminutes\":\""+duration+"\",\n" +
+                    " \"regardingobjectid_contact@odata.bind\": \"/contacts("+userContactid+")\", " +
+                    "//Regarding is a contact\r\n   " +
+                    " \"phonecall_activity_parties\": [\r\n       {\r\n     " +
+                    "       \"partyid_contact@odata.bind\": \"/contacts("+clientContactid+")\", " +
+                    "// call started by a sustemuser\r\n         " +
+                    "   \"participationtypemask\" : 1 // From\r\n        },\r\n        {\r\n      " +
+                    "      \"partyid_contact@odata.bind\": \"/contacts("+userContactid+")\"," +
+                    "// call to by a contact\r\n       " +
+                    "     \"participationtypemask\": 2 // To\r\n        }\r\n    ]\r\n    }");
 
-}
+        }
 /*body =RequestBody.create(mediaType,"{    \"subject\": \" "+desc+"\",\n" +
         "    \"phonenumber\": \" "+phNumber+"\",\n" +
         "    \"description\": \"My description\",\n" +
@@ -360,37 +355,39 @@ if(direction)
             @Override
             public void onResponse(Call call, final Response response) throws IOException {
                 if (!response.isSuccessful()) {
-                         SaveLogsPage.this.runOnUiThread(new Runnable() {
-                             @Override
-                             public void run() {
-                                 Log.e("okhttp2",response.toString());
-                                 logsStatus.setTextColor(0xFFFF0000);
-                                 logsStatus.setText("unsuccessfull!");
-                             }
-                         });
+                    SaveLogsPage.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Log.e("okhttp2",response.toString());
+                            logsStatus.setTextColor(0xFFFF0000);
+                            logsStatus.setText("unsuccessfull!");
+                        }
+                    });
 
 
-                 //   Toast.makeText(SaveLogsPage.this,"successfullt saved",Toast.LENGTH_LONG).show();
+                    //   Toast.makeText(SaveLogsPage.this,"successfullt saved",Toast.LENGTH_LONG).show();
                     throw new IOException("Unexpected code " + response);
                 }else{
                     //  Toast.makeText(getActivity(),"sucess",Toast.LENGTH_LONG).show();
 
                     Log.e("success",response.toString());
                     //logsStatus.setText("successfully added to CRM!");
-                     SaveLogsPage.this.runOnUiThread(new Runnable() {
-                         @Override
-                         public void run() {
-                             Log.d("dateFormatSave",dateFormat1);
+                    SaveLogsPage.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Log.d("dateFormatSave",dateFormat1);
                             dataBaseHelper2 = new DataBaseHelper2(SaveLogsPage.this);
-                         //  cl2 = dataBaseHelper2.fetchByDate(dateFormat1);
-                           //    Log.d("fetch by date",cl2.toString());
-                              dataBaseHelper2.modifySaved(dateFormat1);
-                             logsStatus.setVisibility(View.VISIBLE);
-                             // logsStatus.setTextColor(Integer.parseInt("#00FF00"));//green
-                             logsStatus.setText("successfully added!");
-                         }
-                     });
-                   // Toast.makeText(SaveLogsPage.this,"successfullt saved",Toast.LENGTH_LONG).show();
+                            //  cl2 = dataBaseHelper2.fetchByDate(dateFormat1);
+                            //    Log.d("fetch by date",cl2.toString());
+                            dataBaseHelper2.modifySaved(dateFormat1);
+                            logsStatus.setVisibility(View.VISIBLE);
+                            // logsStatus.setTextColor(Integer.parseInt("#00FF00"));//green
+                            logsStatus.setText("successfully added!");
+                            savephonecall.setEnabled(false);
+                            cancel.setText("back");
+                        }
+                    });
+                    // Toast.makeText(SaveLogsPage.this,"successfullt saved",Toast.LENGTH_LONG).show();
                     Log.d("create:","success");
                 }
 
@@ -400,17 +397,70 @@ if(direction)
         });
     }
 
+    private void getAccount() {
+        SaveLogsPage.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                PublicClientApplication.createSingleAccountPublicClientApplication(SaveLogsPage.this , R.raw.auth_config_single_account,new IPublicClientApplication.ISingleAccountApplicationCreatedListener(){
+                    @Override
+                    public void onCreated(ISingleAccountPublicClientApplication application){
+
+                        if(SaveLogsPage.this == null) Log.e("EMT","EMT");
+                        mSingleAccountApp = application;
+                       loadAccount();
+                    }
+                    @Override
+                    public void onError(MsalException exception){
+                        displayError(exception);
+                    }
+                });
+            }
+        });
+
+    }
+
+    private void displayError(MsalException exception) {
+        SaveLogsPage.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                durationTxtView.setText("error");
+                ETdescription.setText("error");
+                logsCardView.setVisibility(View.GONE);
+                logsStatus.setTextColor(0xFFFF0000);
+                logsStatus.setText("you need to sign in before u save a log call!\n\n"+ exception.toString());
+            }
+        });
+
+    }
+
+    private void loadAccount() {
+
+        if(mSingleAccountApp == null){
+            return ;
+        }
+        mSingleAccountApp.getCurrentAccountAsync(new ISingleAccountPublicClientApplication.CurrentAccountCallback(){
+            @Override
+            public void onAccountLoaded(@Nullable IAccount activeAccount){
+              useremail = activeAccount.getUsername();
+              System.out.println("useremail in function:"+useremail);
+            }
+
+            @Override
+            public void onAccountChanged(@Nullable IAccount priorAccount,@Nullable IAccount currentAccount){
+                if(currentAccount == null){
 
 
 
+                    //      openBrowserTabActivity();
+                }
+            }
+            @Override
+            public void onError(@NonNull MsalException exception){
+                displayError(exception);
 
-
-
-
-
-
-
-
+            }
+        });
+    }
 
 
 
@@ -432,11 +482,9 @@ if(direction)
                     phNumber = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.NUMBER));
                     callDate = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.DATE));
                     callDuration = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.DURATION));
-
-
-
-
-
+                    if(phNumber.contains("+961")){
+                   phNumber=phNumber.replace("+961","");
+                    }
                     callDuration = String.valueOf((Integer.parseInt(String.valueOf(Integer.parseInt(callDuration)/60))));
 
                     dateFormat= new Date(Long.valueOf(callDate));
@@ -446,11 +494,11 @@ if(direction)
 
                     SimpleDateFormat formatter = new SimpleDateFormat(
                             "MM/dd/yyyy HH:mm aa");
-                     dateString = formatter.format(new Date(Long
+                    dateString = formatter.format(new Date(Long
                             .parseLong(callDate)));
                     String stringType;
                     try{
-                    stringType = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.TYPE));
+                        stringType = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.TYPE));
                         Toast.makeText(SaveLogsPage.this,stringType,Toast.LENGTH_LONG).show();
                         switch (stringType) {
                             case "2":
@@ -503,27 +551,29 @@ if(direction)
                         case CallLog.Calls.MISSED_TYPE:
                             direction = "MISSED";
                             directionBoolean = false;
-
                             Log.d(String.valueOf(SaveLogsPage.this),"durection boolean = false ->"+directionBoolean);
                             break;
                         default:
                             break;
                     }*/
                     Log.d("dateStringlogs",dateString);
-                    if(contactFound!=null){
-                    CallLogs cl =new CallLogs(callDuration,String.valueOf(directionBoolean),dateString,phNumber,"false",contactFound.getContact_id());
+  //                  if(contactFound!=null){
+                   CallLogs cl =new CallLogs(callDuration,String.valueOf(directionBoolean),dateString,phNumber,"false",contactFound.getContact_id());
 
-                    if(dataBaseHelper2.addOne(cl)){
-                        showToast(SaveLogsPage.this,"success");
-                        Log.d("cl->>>>",cl.toString());
-                    }else{
-                        showToast(SaveLogsPage.this,"unsuccessful");
-                    }
-                    Log.d("dateString",dateString);
+                 if(dataBaseHelper2.addOne(cl)){
+                     showToast(SaveLogsPage.this,"success");
+                    Log.d("cl->>>>",cl.toString());
+                  }else{
+                     showToast(SaveLogsPage.this,"unsuccessful");
+                 }
+//                    Log.d("dateString",dateString);
+//
+//                    }else{
+//                        Log.d("contactfound","is null");
+//                    }
 
-                    }else{
-                        Log.d("contactfound","is null");
-                    }
+                    dataBaseHelper2.modifyContactid(dateString,contactFound);
+
                     updateUI(callDuration,phNumber,dateString,directionBoolean);
                 }
             }
@@ -542,14 +592,14 @@ if(direction)
         contact.setText(contactFound.getContact_fname() + "" + contactFound.getContact_lname() );
         phonrNumber.setText(callReciever.number);
         durationTxtView.setText(callDuration);
-      //  if(cl2.getDuration()=="0") {
-            durationTxtView.setText("MISSED");
-       // }
+        //  if(cl2.getDuration()=="0") {
+        durationTxtView.setText("MISSED");
+        // }
         String sub = subject.getText().toString().trim();
         //logsStatus.setText("error fetching the contact!");
 
         if(!CallLogsAdapter.openedfromfrag){
-        //saveLogs(sub,desc,durationInt,phNumber,dateFormat,direction);
+            //saveLogs(sub,desc,durationInt,phNumber,dateFormat,direction);
 
         }
 
@@ -565,9 +615,9 @@ if(direction)
         contact.setText(dataBaseHelper.getContactName(cl.getCallerid()));
         phonrNumber.setText(phNumber);
         durationTxtView.setText(cl.getDuration());
-       // if(cl.getDuration()=="0") {
-         //   durationTxtView.setText("MISSED");
-       // }
+        // if(cl.getDuration()=="0") {
+        //   durationTxtView.setText("MISSED");
+        // }
         String sub = subject.getText().toString().trim();
         //logsStatus.setText("error fetching the contact!");
 
@@ -578,17 +628,17 @@ if(direction)
 
     }
 
-public String fetchContactid(String email){
+    public String fetchContactid(String email){
         //will return contactid of the person with the following email
 //Log.d("fetchContactid",dataBaseHelper.getContactId("clarita.hawat@javista.com"));
-     return dataBaseHelper.getContactId(email);
+        return dataBaseHelper.getContactId(email);
 
-    // return "f9c25f54-59db-ec11-bb3d-000d3a66d2a8";
-}
+        // return "f9c25f54-59db-ec11-bb3d-000d3a66d2a8";
+    }
 
     public String fetchContactidByphone(String phone){
         //will return contactid of the person with the following email
-       // Log.d("fetchContactid",dataBaseHelper.getContactId("clarita.hawat@javista.com"));
+        // Log.d("fetchContactid",dataBaseHelper.getContactId("clarita.hawat@javista.com"));
         return dataBaseHelper.getContactIdByPhone(phone);
 
         // return "f9c25f54-59db-ec11-bb3d-000d3a66d2a8";
@@ -608,7 +658,7 @@ public String fetchContactid(String email){
                 Log.d("TAG", "Authentication failed: " + exception.toString());
 
             }
-        @Override
+            @Override
             public void onCancel() {
                 /* User canceled the authentication */
                 Log.d("TAG", "User cancelled login.");

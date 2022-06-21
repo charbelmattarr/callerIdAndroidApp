@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,6 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -81,19 +83,23 @@ public class CallLogsAdapter extends ArrayAdapter<CallLogs> {
       //      holder.contactname.setText("N/A");
      //   }else{
         holder.contactname.setText(calllog.getPhoneNbre());
-        if(!calllog.getCalllogid().equals(null)){
+        if(!(dt1.fetchcontact(calllog.getPhoneNbre()).getContact_id().equals(""))){
+            dt2.modifyContactid(calllog.getDate(),dt1.fetchcontact(calllog.getPhoneNbre()));
+            holder.contactname.setText(dt1.getContactName(calllog.getCallerid()));
+        }
+      /* else if(!calllog.getCalllogid().equals(null)){
 
             holder.contactname.setText(dt1.getContactName(calllog.getCallerid()));
-            if(dt1.getContactName(calllog.getCallerid()).equals("")){
-               if(!(dt1.fetchcontact(calllog.getPhoneNbre()).getContact_id()=="")){
+            if(!dt1.getContactName(calllog.getCallerid()).equals("null") || !dt1.getContactName(calllog.getCallerid()).equals("") ){
+               if(!(dt1.fetchcontact(calllog.getPhoneNbre()).getContact_id().equals(""))){
                    dt2.modifyContactid(calllog.getDate(),dt1.fetchcontact(calllog.getPhoneNbre()));
                    holder.contactname.setText(dt1.getContactName(calllog.getCallerid()));
                }else{
-               holder.contactname.setText(calllog.getPhoneNbre());
+                   holder.contactname.setText(calllog.getPhoneNbre());
                }
             }
 
-        }
+        }*/
 //        if(dt1.getContactName(calllog.getCallerid()).equals("")){
       //    holder.contactname.setText(calllog.getPhoneNbre());
      //  }
@@ -105,16 +111,22 @@ public class CallLogsAdapter extends ArrayAdapter<CallLogs> {
          //   holder.isSaved.setTextColor(Color.parseColor("#000000"));
          //   holder.isSaved.setTextColor(Integer.parseInt("0x000000"));
             holder.isSaved.setClickable(false);
-            holder.isSaved.setBackgroundColor(getContext().getResources().getColor(R.color.green));
-            holder.isSaved.setText("saved!");
-            holder.isSaved.setEnabled(false);
+            holder.isSaved.setBackgroundColor(getContext().getResources().getColor(R.color.lightblue));
+
+            holder.isSaved.setText("Go to dynamics!");
+            holder.isSaved.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    openCRM(getItem(position).getCallerid());
+                }
+            });
           //  holder.isSaved.setTextColor(0x00000);
         }else {
-            holder.isSaved.setText("not saved in CRM");
+            holder.isSaved.setText("Save to DYNAMICS");
             holder.isSaved.setEnabled(true);
             holder.isSaved.setBackgroundColor(getContext().getResources().getColor(R.color.grey));
          //   holder.isSaved.setBackgroundColor(0x008000);
-            if(dt1.getContactName(calllog.getCallerid()).equals("")){
+            if(dt1.getContactName(calllog.getCallerid()).equals("") ){
                // holder.contactname.setText(calllog.getPhoneNbre());
                 //eza huwe empty yaane msh b crm.. so we should create the contact in crm then save the logg
 
@@ -127,12 +139,7 @@ public class CallLogsAdapter extends ArrayAdapter<CallLogs> {
                     }
                 });
 
-
-
-
-        }
-
-    else{
+            }else{
             holder.isSaved.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -143,6 +150,7 @@ public class CallLogsAdapter extends ArrayAdapter<CallLogs> {
             });
 
         }
+
         }
 if(calllog.getDirection().equals("true")){
     //true means outgoing
@@ -156,6 +164,19 @@ if(calllog.getDirection().equals("true")){
 
 }
         return convertView;
+    }
+
+    private void openCRM(String callerid) {
+
+
+            if(callerid.isEmpty()){
+                Toast.makeText(mContext,"page not found!",Toast.LENGTH_LONG).show();
+                return;
+            }
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://orgc452f0fa.crm4.dynamics.com/main.aspx?appid=b9966deb-62c8-ec11-a7b5-0022489de0f3&forceUCI=1&pagetype=entityrecord&etn=contact&id="+callerid+""));
+            mContext.startActivity(browserIntent);
+
+
     }
 
     private void openCreateApp(@NonNull CallLogs c, Context mContext) {

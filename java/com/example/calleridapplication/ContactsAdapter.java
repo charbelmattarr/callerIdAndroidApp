@@ -85,7 +85,7 @@ public class ContactsAdapter extends ArrayAdapter<ContactModel> {
                openCalllogsRelated(mContext,getItem(position));
            }
        });
-        holder.fullname.setText(contact.getContact_fname() + "-" +contact.getContact_lname());
+        holder.fullname.setText(contact.getContact_fname() + " " +contact.getContact_lname());
         holder.company.setText(contact.getContact_company());
         holder.job.setText(contact.getContact_job());
         holder.phonenbre.setText(contact.getContact_mobilephone());

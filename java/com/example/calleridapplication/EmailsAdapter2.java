@@ -1,4 +1,4 @@
-/*package com.example.calleridapplication;
+package com.example.calleridapplication;
 
 import android.content.Context;
 import android.os.Message;
@@ -6,15 +6,19 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
 import com.example.CallerIdApplication.R;
 
+import org.apache.commons.math3.geometry.euclidean.twod.Line;
+
 import java.util.List;
 
-public class MailsAdapter extends ArrayAdapter<EmailModel> {
+public class EmailsAdapter2 extends ArrayAdapter<EmailModel> {
     private Context mContext;
     private int mResource;
 
@@ -23,9 +27,11 @@ public class MailsAdapter extends ArrayAdapter<EmailModel> {
     static class ViewHolder {
         TextView subject;
         TextView time;
+        ImageView read;
+        TextView body;
     }
 
-    public MailsAdapter(Context context, int resource, List<EmailModel> messages) {
+    public EmailsAdapter2(Context context, int resource, List<EmailModel> messages) {
         super(context, resource, messages);
         mContext = context;
         mResource = resource;
@@ -43,16 +49,29 @@ public class MailsAdapter extends ArrayAdapter<EmailModel> {
             convertView = inflater.inflate(mResource, parent, false);
 
             holder = new ViewHolder();
-            holder.subject = convertView.findViewById(R.id.subject);
-            holder.time = convertView.findViewById(R.id.time);
+            holder.subject = convertView.findViewById(R.id.textView7);
+            holder.time = convertView.findViewById(R.id.textView6);
+            holder.read = convertView.findViewById(R.id.checkBox);
+            holder.body = convertView.findViewById(R.id.textView8);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
 
-        holder.subject.setText(message.getSubject());
-        holder.time.setText(message.getTime());
+        holder.subject.setText(" "+message.getSubject());
+        holder.time.setText(" "+message.getTime());
+        if(!message.isRead()){
+       holder.read.setImageResource(R.drawable.ic_baseline_close_24);
+        }
 
+
+        System.out.println("bodies before : "+message.getBodyPreview());
+       //String body2 = message.getBodyPreview().replaceAll("\\r","<html><br></html>");
+       //String bodies = message.getBodyPreview().replaceAll("(\r\n\r\n|\n|\r)", "");
+        String bodies = message.getBodyPreview().replaceAll("\\\\r", "");
+       bodies = bodies.replaceAll("\\\\n", "");
+       System.out.println("bodies : "+bodies);
+       holder.body.setText(bodies);
         return convertView;
     }
 
@@ -61,4 +80,3 @@ public class MailsAdapter extends ArrayAdapter<EmailModel> {
 
 }
 
- */

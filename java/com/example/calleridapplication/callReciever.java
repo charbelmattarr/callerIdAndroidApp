@@ -32,6 +32,7 @@ import com.google.android.material.navigation.NavigationView;
 
 public class callReciever extends BroadcastReceiver {
     int count=0;
+    String direction = null;
     public static final String CUSTOM_INTENT = "jason.wei.custom.intent.action.TEST";
    static String number="";
   public Context ctx;
@@ -40,6 +41,7 @@ public class callReciever extends BroadcastReceiver {
   public static String numbertocreate="bonjour";
   public static Boolean openedOnNotFound = false;
   public static boolean openCreate=false;
+
   // Dialog dialog;
     DataBaseHelper dt = null;
     DataBaseHelper2 dt2 = null;
@@ -48,6 +50,7 @@ public class callReciever extends BroadcastReceiver {
          ctx = context;
          dt = new DataBaseHelper(context);
         dt2 = new DataBaseHelper2(context);
+
         if (intent.getAction().equals("android.intent.action.PHONE_STATE")) {
 
             String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
@@ -80,8 +83,13 @@ public class callReciever extends BroadcastReceiver {
                 //showToast(context, "Call started...");
 
             } else if (state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
+                 getLogs();
+               //  if(direction.equals("OUTGOING")) {
+                   //  startService();
+                 //    openpopUpService( context,number);
 
-
+               //  }
+                Window.opened=false;
                 if(!number.isEmpty() && number != null){
                     numbertofetch = number;
                 }
@@ -107,10 +115,13 @@ Log.d("logs","we will be adding the logs to database later");
                     showToast(context,"error opening second one");
                 }
 
-                        getLogs();
+                       // getLogs();
             } else if (state.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
-                number = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
-
+             number = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
+            if( Window.opened){
+               return;
+                       }
+      if(!Window.opened){
        if(!number.isEmpty() && number != null){
            numbertofetch = number;
            System.out.println("The Caller Number is Ringing:  " + number);
@@ -125,13 +136,12 @@ Log.d("logs","we will be adding the logs to database later");
              showToast(context,e.toString());
          }
          }
-    }
-                // showToast(context, "Incoming call...");
+      }
+
             }
-
-
         }
 
+    }
     private void addLogToDB2(Context ctx) {
 
 
@@ -213,7 +223,6 @@ Log.d("logs","we will be adding the logs to database later");
             c.close();
         }
     }
-
 
 
 
@@ -539,7 +548,7 @@ public boolean check_if_number_isEmpty(String nbre){
                         Date dateFormat= new Date(Long.valueOf(callDate));
                         String callDayTimes = String.valueOf(dateFormat);
 
-                        String direction = null;
+
                         switch (Integer.parseInt(c.getString(c.getColumnIndexOrThrow(CallLog.Calls.TYPE)))) {
                             case CallLog.Calls.OUTGOING_TYPE:
                                 direction = "OUTGOING";
@@ -551,6 +560,7 @@ public boolean check_if_number_isEmpty(String nbre){
                                 direction = "MISSED";
                                 break;
                             default:
+                                direction = "OUTGOING";
                                 break;
                        }
 

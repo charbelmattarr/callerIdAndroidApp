@@ -1,7 +1,9 @@
 package com.example.calleridapplication;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.PixelFormat;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -15,6 +17,7 @@ import android.view.WindowManager;
 import android.widget.Adapter;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -30,22 +33,39 @@ import com.android.volley.toolbox.Volley;
 import com.example.CallerIdApplication.R;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.microsoft.graph.authentication.IAuthenticationProvider;
 import com.microsoft.graph.concurrency.ICallback;
 import com.microsoft.graph.core.ClientException;
+import com.microsoft.graph.http.IHttpRequest;
 import com.microsoft.graph.models.extensions.Contact;
+import com.microsoft.graph.models.extensions.Drive;
+import com.microsoft.graph.models.extensions.IGraphServiceClient;
 import com.microsoft.graph.options.HeaderOption;
 import com.microsoft.graph.options.Option;
 import com.microsoft.graph.options.QueryOption;
+import com.microsoft.graph.requests.extensions.GraphServiceClient;
 import com.microsoft.graph.requests.extensions.IMessageCollectionPage;
+import com.microsoft.identity.client.IAccount;
+import com.microsoft.identity.client.IAuthenticationResult;
+import com.microsoft.identity.client.IPublicClientApplication;
+import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
+import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.client.SilentAuthenticationCallback;
+import com.microsoft.identity.client.exception.MsalException;
 
 import static android.content.Context.WINDOW_SERVICE;
 
+import static com.example.calleridapplication.signin_fragment.is_signedin;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -56,17 +76,22 @@ public class Window {
 
     private Context context;
     private View mView;
+    private final static String[] SCOPES = {"Files.Read","Mail.Read"};
     private WindowManager.LayoutParams mParams;
     private WindowManager mWindowManager;
     private LayoutInflater layoutInflater;
     ListView emailList;
+    static Boolean opened = false;
     static ContactModel contactFound = null;
     public static boolean found=false;
+    public IGraphServiceClient graphClient=null;
+    public static ISingleAccountPublicClientApplication mSingleAccountApp;
     EmailModel e1 = new EmailModel("emailsubject","time");
     EmailModel e2 = new EmailModel("payment issus","25-05-2022");
     EmailModel e3 = new EmailModel("payment validated","25-05-2022");
     List<EmailModel> list = null;
     EmailModel emailsss;
+    Button openInApp;
     Button fetchEmails;
     String time;
     LinearLayout bottomsheetWannabe;
@@ -74,6 +99,7 @@ public class Window {
     String subject;
     String AUTHORITY;
     String name,JobTitle,Company,etag,email;
+    ImageView dynamics;
     static String contactid;
     TextView namecaller,companycaller,jobcaller,recentMailscaller,getRecentEmails;
     String URLline;
@@ -104,7 +130,7 @@ public class Window {
          list = new ArrayList<EmailModel>();
         list.add(e1);
         //list.add(e2);list.add(e3);
-
+opened = true;
         dataBaseHelper = new DataBaseHelper(context);
         // set onClickListener on the remove button, which removes
         // the view from the window
@@ -118,26 +144,39 @@ public class Window {
         companycaller = mView.findViewById(R.id.companycaller);
         jobcaller = mView.findViewById(R.id.jobcaller);
         emailList = mView.findViewById(R.id.emailList);
-        loadListView(list);
+        openInApp =  mView.findViewById(R.id.openinapp);
+        dynamics = mView.findViewById(R.id.dynamicslogo);
+        dynamics.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                goToDynamics();
+            }
+        });
+        //loadListView(list);
+        emailList.setVisibility(View.GONE);
+        openInApp.setVisibility(View.GONE);
         //  idcaller = findViewById(R.id.idcaller);
         // recentMailscaller = findViewById(R.id.recentMailscaller);
         //  etagcaller = findViewById(R.id.etagcaller);
         bottomsheetWannabe = mView.findViewById(R.id.bottomsheetWannabe);
         // getRecentEmails = findViewById(R.id.getRecentEmails);
         fetchEmails = mView.findViewById(R.id.fetchEmails1);
-
-
-        fetchEmails.setOnClickListener(new View.OnClickListener() {
+        PublicClientApplication.createSingleAccountPublicClientApplication(context, R.raw.auth_config_single_account,new IPublicClientApplication.ISingleAccountApplicationCreatedListener(){
             @Override
-            public void onClick(View v) {
-              //  if(email.isEmpty()){
-                  //  Toast.makeText(context,"empty email",Toast.LENGTH_LONG).show();
-                //    return;
-            //    }
+            public void onCreated(ISingleAccountPublicClientApplication application){
 
-                getRecentEmails(email);
+                if(context == null) Log.e("EMT","EMT");
+                mSingleAccountApp = application;
+
+            }
+            @Override
+            public void onError(MsalException exception){
+              Toast.makeText(context,exception.toString(),Toast.LENGTH_LONG).show();
             }
         });
+
+
+
         mParams.gravity = Gravity.BOTTOM;
 
         mWindowManager = (WindowManager)context.getSystemService(Context.WINDOW_SERVICE);
@@ -202,21 +241,48 @@ public void search4contactLocaly(String number){
     found =true;
         Log.d("window.found",String.valueOf(found));
         updateLayout2(contactFound.getContact_fname(),contactFound.getContact_lname(),contactFound.getContact_job(),contactFound.getContact_company());
+        openInApp.setVisibility(View.VISIBLE);
+        openInApp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openApp(contactFound.getContact_id());
+            }
+        });
    getTokenForGraph(contactFound.getContact_email());
 
 }
 
+    private void openApp(String contact_id) {
+        Intent i = new Intent(context,relatedCallLogs.class);
+        i.putExtra("id",contact_id);
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(i);
+
+    }
+
     public void getTokenForGraph(String email){
 
-        if (signin_fragment.mSingleAccountApp == null){
-            Toast.makeText(context,"you need to be signed in to find your emails with this contact",Toast.LENGTH_LONG).show();
-            return;
-        }
 
+        PublicClientApplication.createSingleAccountPublicClientApplication(context, R.raw.auth_config_single_account,new IPublicClientApplication.ISingleAccountApplicationCreatedListener(){
+            @Override
+            public void onCreated(ISingleAccountPublicClientApplication application){
+
+                if(context == null) Log.e("EMT","EMT");
+                //showProgressBar();
+                mSingleAccountApp = application;
+                loadAccount(email);
+            }
+            @Override
+            public void onError(MsalException exception){
+
+                Toast.makeText(context,exception.toString(),Toast.LENGTH_LONG).show();
+            }
+        });
         // url = ("https://graph.microsoft.com/v1.0/me/messages?$filter=(from/emailAddress/address) eq 'charbel.mattar@javista.com'&$select=subject,body,receivedDateTime");
         AUTHORITY = "https://graph.microsoft.com/v1.0/";
         //  signin_fragment.mSingleAccountApp.acquireTokenSilentAsync(SCOPES, AUTHORITY, getAuthSilentCallback());
-        getAuthSilentCallback(email);
+
+       // getAuthSilentCallback(email);
     }
     private void getAuthSilentCallback(String email) {
         /*ù
@@ -270,18 +336,18 @@ public void search4contactLocaly(String number){
     }
     private void displayEmail(JsonObject rawObject) {
 
-        List<EmailModel> Emails=null;
+        List<EmailModel> Emails = new ArrayList<>();
         EmailSubjects = new String[]{};
         JsonArray emails = rawObject.getAsJsonArray("value");
 
         if(emails.size()==0){
             Emails = new ArrayList<>();
-            emailsss = new EmailModel("no emails","");
+            emailsss = new EmailModel("no emails","2");
             Emails.add(emailsss);
             return;
         }
         for(int i =0 ;i<emails.size();i++){
-            Emails = new ArrayList<>();
+           
         JsonObject dataObject = (JsonObject) emails.get(i);
 
         subject = dataObject.get("subject").toString();
@@ -295,7 +361,16 @@ public void search4contactLocaly(String number){
                     String dateString = formatter.format(new Date(Long
                             .parseLong(callDate)));*/
         time = dataObject.get("sentDateTime").toString().replaceAll("\"","").trim();
+            try {
+                SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                SimpleDateFormat outputFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm aa");
+                Date date = null;
 
+                date = inputFormat.parse(time);
+
+                String dateString = outputFormat.format(date);
+                System.out.println(dateString);
+                Log.d("time",dateString);
     /*  Date date = new Date(Long.valueOf(time));
               SimpleDateFormat formatter = new SimpleDateFormat(
                     "MM/dd/yyyy HH:mm:ss");
@@ -304,9 +379,12 @@ public void search4contactLocaly(String number){
             Log.d("unmodified","date: "+time);
          Log.d("time",dateString);
 */
-        emailsss = new EmailModel(subject,time);
+        emailsss = new EmailModel(subject,dateString);
         Emails.add(emailsss);
+            } catch (ParseException e) {
+                e.printStackTrace();
        }
+        }
         loadListView(Emails);
 
     }
@@ -319,6 +397,8 @@ public void search4contactLocaly(String number){
             new Handler(Looper.getMainLooper()).post(new Runnable() {
                 @Override
                 public void run() {
+                    emailList.setVisibility(View.VISIBLE);
+                    openInApp.setVisibility(View.VISIBLE);
                     ArrayAdapter itemsAdapter =
                             new MailsAdapter(context, R.layout.mailsadapter_layout, emailSubjects);
 
@@ -394,6 +474,18 @@ public void search4contactLocaly(String number){
                     //    etag = dataobj.getString("@odata.etag");
                     email = dataobj.getString("emailaddress1");
                     contactFound = new ContactModel(contactid,name,lname,Company,Company,email,mobilephone);
+                    if(dataBaseHelper.addOne(contactFound)) {
+                        Toast.makeText(context,"success",Toast.LENGTH_LONG).show();
+                    }else {
+                        Toast.makeText(context,"unsuccessfull",Toast.LENGTH_LONG).show();
+                    }
+                    openInApp.setVisibility(View.VISIBLE);
+                    openInApp.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            openApp(contactFound.getContact_id());
+                        }
+                    });
                     if(Window.contactFound.getContact_id().equals(null)||Window.contactFound.getContact_id().isEmpty()){
                           Log.d("jsonnn","empty");
                     }else{
@@ -401,7 +493,8 @@ public void search4contactLocaly(String number){
                     }
                     found=true;
                     updateLayout1(name,JobTitle,Company);
-                    getRecentEmails(email);
+                  //  getRecentEmails (email);
+                    loadAccount(email);
                 }catch(JSONException e){
                     e.printStackTrace();
                     Log.e("TAG",e.getMessage().toString());
@@ -434,5 +527,110 @@ public void search4contactLocaly(String number){
         //  etagcaller.setText(etag);
 
     }
+    private void loadAccount(String email){
+        if(mSingleAccountApp == null){
+            return;
+        }
+        mSingleAccountApp.getCurrentAccountAsync(new ISingleAccountPublicClientApplication.CurrentAccountCallback(){
+            @Override
+            public void onAccountLoaded(@Nullable IAccount activeAccount){
+               // updateUI(activeAccount);
+               // if(!is_signedin){
+                    mSingleAccountApp.acquireTokenSilentAsync(SCOPES, AUTHORITY, getAuthSilentCallback2(email));
+                    is_signedin=true;
+                   // newSign=true;
+              //  }
+                //  openBrowserTabActivity();
 
+            }
+
+            @Override
+            public void onAccountChanged(@Nullable IAccount priorAccount,@Nullable IAccount currentAccount){
+                if(currentAccount == null){
+                    Toast.makeText(context,"you need to sign in!Account Info Changed",Toast.LENGTH_LONG).show();
+
+                    //      openBrowserTabActivity();
+                }
+            }
+            @Override
+            public void onError(@NonNull MsalException exception){
+                Toast.makeText(context, exception.toString(), Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+    private SilentAuthenticationCallback getAuthSilentCallback2(String email) {
+        return new SilentAuthenticationCallback() {
+            @Override
+            public void onSuccess(IAuthenticationResult authenticationResult) {
+                Log.d("TAG", "Successfully authenticated");
+                is_signedin=true;
+               callGraphAPI(authenticationResult,email);
+            }
+            @Override
+            public void onError(MsalException exception) {
+                Log.d("TAG", "Authentication failed: " + exception.toString());
+
+            }
+        };
+    }
+    private void callGraphAPI(IAuthenticationResult authenticationResult,String emails) {
+        //GraphHelper graphHelper= GraphHelper.getInstance();
+        //   graphHelper.get
+        final String accessToken = authenticationResult.getAccessToken();
+        final List<Option> options = new LinkedList<>();
+        // options.add(new QueryOption("search",
+        //3.3     "mobilePhone:\""+number+"\""));
+
+        // Start and end times adjusted to user's time zone
+        if(contactFound.getContact_email().isEmpty() ||contactFound.getContact_email().equals("null")){
+            Toast.makeText(context,"you dont know the email of this person",Toast.LENGTH_LONG).show();
+        }
+        options.add(new QueryOption("filter",
+                "(from/emailAddress/address) eq '"+emails+"'"));
+        //token=authenticationResult.getAccessToken();
+        //  storage.SaveAuthenticationState(authenticationResult.getAccessToken());
+
+        graphClient =
+                GraphServiceClient
+                        .builder()
+                        .authenticationProvider(new IAuthenticationProvider() {
+                            @Override
+                            public void authenticateRequest(IHttpRequest request) {
+                                Log.d("TAG", "Authenticating request," + request.getRequestUrl());
+                                request.addHeader("Authorization", "Bearer " + accessToken);
+                                Log.d("token is", accessToken);
+                            }
+                        })
+                        .buildClient();
+        graphClient
+                .me()
+                .messages()
+                .buildRequest(options)
+                .top(2)
+                .get(new ICallback<IMessageCollectionPage>() {
+
+                    @Override
+                    public void success(IMessageCollectionPage iMessageCollectionPage) {
+                        Log.d("response",iMessageCollectionPage.getRawObject().toString());
+
+                        displayEmail(iMessageCollectionPage.getRawObject());
+
+                    }
+
+                    @Override
+                    public void failure(ClientException ex) {
+                        Log.d("error",ex.getMessage().toString());
+                    }
+                });
+    }
+
+
+    public void goToDynamics(){
+        if(contactid.isEmpty()){
+            Toast.makeText(context,"page not found!",Toast.LENGTH_LONG).show();
+            return;
+        }
+        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://orgc452f0fa.crm4.dynamics.com/main.aspx?appid=b9966deb-62c8-ec11-a7b5-0022489de0f3&forceUCI=1&pagetype=entityrecord&etn=contact&id="+contactid+""));
+        context.startActivity(browserIntent);
+    }
 }
