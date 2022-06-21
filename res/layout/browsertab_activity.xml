@@ -1,16 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/drawerLayout"
+
     android:fitsSystemWindows="true"
     tools:context="com.example.calleridapplication.first"
     tools:openDrawer="start"
 
    >
-
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:foregroundGravity="center"
+        android:visibility="gone"
+        android:id="@+id/progressBarDrawer"
+        />
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -19,16 +27,16 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@drawable/gradient_javista"
+            android:background="@color/lightblue"
             app:titleTextColor="@color/white"
             android:elevation="4dp"
-            android:theme="@style/Theme.CallerIdApplication"
+
             tools:ignore="MissingConstraints"
             app:navigationIcon="@drawable/ic_baseline_dehaze_24_white"
             app:titleTextAppearance="@color/white"
             >
 
-
+<!--android:theme="@style/Theme.CallerIdApplication"-->
 
             <TextView
                 android:layout_width="match_parent"
@@ -45,7 +53,16 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_below="@+id/toolbar"
-                />
+                >
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:id="@+id/signinstatus"
+                    android:gravity="center"
+                    android:visibility="gone"
+                    android:text="please sign in"/>
+            </FrameLayout>
 
 
 
@@ -63,18 +80,19 @@
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
     <com.google.android.material.navigation.NavigationView
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:id="@+id/NavigationView"
         android:layout_gravity="start"
         app:menu="@menu/my_navigation_menu"
-        android:background="@drawable/gradient_javista"
+        android:background="@color/offwhite"
         app:headerLayout="@layout/nav_header"
-        android:outlineAmbientShadowColor="@color/white"
-        android:outlineSpotShadowColor="@color/white"
-        app:itemTextColor="@color/white"
+        android:outlineAmbientShadowColor="@color/offwhite"
+        android:outlineSpotShadowColor="@color/offwhite"
 
-        />
+    />
+    <!--app:itemTextColor="@color/white"-->
 
 </androidx.drawerlayout.widget.DrawerLayout>

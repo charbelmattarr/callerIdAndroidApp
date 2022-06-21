@@ -55,7 +55,19 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     >
+                    <RelativeLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
 
+                        <Button
+
+                            android:id="@+id/buttonClose1"
+                            android:layout_width="45dp"
+                            android:layout_height="45dp"
+                            android:layout_alignParentRight="true"
+                            android:backgroundTint="@color/red"
+                            android:text="x" />
+                    </RelativeLayout>
 
 
                     <LinearLayout
@@ -71,17 +83,9 @@
                             android:textSize="25dp"
                             android:layout_gravity="center"
                             android:textAlignment="center"
-                            android:textColor="@color/javistaOrange"
+                            android:textColor="@color/blue"
                             android:padding="2dp"/>
 
-                        <Button
-
-                            android:layout_width="45dp"
-                            android:layout_height="45dp"
-                            android:text="x"
-                            android:backgroundTint="@color/red"
-                            android:id="@+id/buttonClose1"
-                            />
                     </LinearLayout>
                     <TextView
                         android:layout_width="match_parent"
@@ -119,6 +123,24 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/emailList1"/>
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:textSize="15dp"
+                    android:visibility="gone"
+                    android:text="More Info..."
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentLeft="true"
+                    android:gravity="center"
+                    android:backgroundTint="@color/grey"
+                    android:id="@+id/openinapp1"/>
+            </RelativeLayout>
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>

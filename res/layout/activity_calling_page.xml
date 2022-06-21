@@ -70,39 +70,48 @@
                 android:layout_height="60dp"
                 android:layout_gravity="left"
                 android:src="@mipmap/ic_dynamics_logo"
-                android:onClick="goToDynamics"/>
+                android:id="@+id/dynamicslogo"
+               />
       <LinearLayout
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
          >
 
+          <RelativeLayout
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content">
 
+              <Button
+
+                  android:id="@+id/buttonClose"
+                  android:layout_width="45dp"
+                  android:layout_height="45dp"
+                  android:layout_alignParentRight="true"
+                  android:layout_marginRight="10dp"
+                  android:backgroundTint="@color/red"
+                  android:text="x" />
+          </RelativeLayout>
 
           <LinearLayout
               android:layout_width="wrap_content"
               android:layout_height="wrap_content"
               android:orientation="horizontal">
+<RelativeLayout
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/namecaller"
-                android:text="firstname"
-                android:textSize="25dp"
-                android:layout_gravity="center"
-                android:textAlignment="center"
-                android:textColor="@color/javistaOrange"
-                android:padding="2dp"/>
+    <TextView
+        android:id="@+id/namecaller"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:padding="2dp"
+        android:text="firstname"
+        android:textColor="@color/black"
+        android:textSize="25dp" />
+</RelativeLayout>
 
-              <Button
-
-                  android:layout_width="45dp"
-                  android:layout_height="45dp"
-                  android:text="x"
-                  android:backgroundTint="@color/red"
-                  android:id="@+id/buttonClose"
-                  />
           </LinearLayout>
             <TextView
                 android:layout_width="match_parent"
@@ -110,7 +119,7 @@
                 android:textSize="18dp"
                 android:id="@+id/companycaller"
                 android:layout_gravity="center"
-                android:textAlignment="center"
+
                 android:text="company"/>
             <TextView
                 android:layout_width="match_parent"
@@ -118,7 +127,7 @@
                 android:id="@+id/jobcaller"
                 android:textSize="13dp"
                 android:layout_gravity="center"
-                android:textAlignment="center"
+
                 android:text="job Title"/>
 
         </LinearLayout>
@@ -140,6 +149,26 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/emailList"/>
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+
+            <Button
+                android:id="@+id/openinapp"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentRight="true"
+                android:layout_marginLeft="50dp"
+                android:layout_marginRight="50dp"
+                android:backgroundTint="@color/lightblue"
+                android:gravity="center"
+                android:text="More Info..."
+                android:textSize="15dp"
+                app:cornerRadius="20dp" />
+        </RelativeLayout>
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>

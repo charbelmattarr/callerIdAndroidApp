@@ -1,23 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
 
-    android:background="@null"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
     xmlns:tools="http://schemas.android.com/tools"
-    >
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
 
     <LinearLayout
+        android:id="@+id/logscardView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:cardCornerRadius="50dp"
 
         android:layout_marginTop="150dp"
-         android:id="@+id/logscardView"
-       android:orientation="horizontal"
-        >
+        android:orientation="horizontal"
+        app:cardCornerRadius="50dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -79,6 +76,12 @@
                         android:layout_height="wrap_content"
                         android:text="Subject:" />
 
+                    <TextView
+                        android:id="@+id/textView9"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="description" />
+
 
                 </LinearLayout>
 
@@ -116,35 +119,40 @@
 
                     <EditText
                         android:id="@+id/subject"
+
                         android:layout_width="match_parent"
-                        android:layout_height="21dp"
-                        android:layout_gravity="center|fill|fill_horizontal|center_vertical"
-                        android:background="@drawable/transparent"
-                        android:hint="@string/subject"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/customborder"
+                        android:backgroundTint="#FFFFFF"
+                        android:backgroundTintMode="add"
+                        android:hint="needed"
+                        android:layout_marginBottom="5dp"
+                        android:lines="1"
+                        android:padding="0in"
                         android:inputType="text"
-                        android:textAllCaps="true"
+                        android:gravity="top"
+                        android:textAlignment="gravity"
                         android:textColor="@color/black"
-                        android:textSize="14sp" />
+                        android:textSize="15dp"/>
+
+                    <EditText
+                        android:id="@+id/description"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/customborder"
+                        android:backgroundTint="#FFFFFF"
+                        android:backgroundTintMode="add"
+                        android:hint="enter the description of the call"
+                        android:inputType="textMultiLine"
+                        android:minLines="7"
+                        android:gravity="top"
+                        android:textAlignment="gravity"
+                        android:textColor="@color/black"
+                        android:textSize="15dp" />
 
 
                 </LinearLayout>
             </LinearLayout>
-
-            <EditText
-                android:id="@+id/description"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_margin="20dp"
-                android:background="#FBFBFB"
-                android:backgroundTint="#FFFFFF"
-                android:backgroundTintMode="add"
-                android:hint="enter the description of the call"
-                android:inputType="textMultiLine"
-                android:padding="2dp"
-                android:textAlignment="center"
-                android:textColor="@color/javistaOrange"
-                android:textSize="15dp" />
 
 
             <Button
@@ -152,28 +160,39 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:backgroundTint="@color/javistaOrange"
+                android:backgroundTint="@color/blue"
                 android:text="save phone call" />
+            <Button
+            android:id="@+id/cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+                android:layout_gravity="center"
+            android:backgroundTint="@color/colorAccent"
 
+            android:text="Don't save into CRM" />
             <TextView
                 android:id="@+id/logsStatus"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="40dp"
                 android:layout_below="@+id/logscardView"
-
-
                 android:background="@drawable/transparent"
-
                 android:text="status"
                 android:textAlignment="center"
                 android:textColor="@color/green" />
+
         </LinearLayout>
 
-
+        <TextView
+            android:id="@+id/logsStatus1"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_below="@+id/logscardView"
+            android:background="@drawable/transparent"
+            android:text="status"
+            android:visibility="gone"
+            android:textAlignment="center"
+            android:textColor="@color/red" />
     </LinearLayout>
-
-
-
 
 
 </RelativeLayout>
