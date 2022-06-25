@@ -8,7 +8,7 @@
     android:backgroundTintMode="multiply"
     android:theme="@style/Theme.AppCompat.NoActionBar"
     tools:context="com.example.calleridapplication.createContact2">
-<ProgressBar
+<!--<ProgressBar
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:visibility="invisible"
@@ -25,24 +25,23 @@
         android:layout_gravity="center"
         android:gravity="center"
         android:backgroundTint="@android:color/secondary_text_light_nodisable">
+
         <TextView
             android:id="@+id/textView3"
-            android:layout_width="376dp"
-            android:layout_height="102dp"
-            android:layout_margin="10dp"
-            android:layout_marginTop="26dp"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="80dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="5dp"
             android:background="@drawable/transparent"
-            android:text="do you want to save this contact?"
+            android:text="Enter contact details"
             android:textColor="@color/lightblue"
-            android:textSize="36sp"
-            android:textStyle="bold|italic"
-            app:layout_constraintBottom_toBottomOf="@+id/textView4"
-            app:layout_constraintEnd_toEndOf="@+id/view4"
-            app:layout_constraintHorizontal_bias="0.527"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/TopView2"
-            app:layout_constraintVertical_bias="1.0" />
-    <!--    <View
+            android:textSize="30dp"
+
+
+            android:textStyle="bold" />
+        <View
             android:id="@+id/view4"
             android:layout_width="412dp"
             android:layout_height="67dp"
@@ -65,6 +64,7 @@
             app:layout_constraintVertical_bias="0.0" />
 -->
 
+<!--
         <LinearLayout
             android:id="@+id/linearLayout2"
             android:layout_width="wrap_content"
@@ -73,22 +73,18 @@
             android:layout_marginTop="15dp"
             android:layout_marginRight="10dp"
 
-            android:orientation="vertical"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.369"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/view4"
-            app:layout_constraintVertical_bias="0.78">
+            android:orientation="vertical">
 
             <EditText
                 android:id="@+id/cr_firstname2"
+
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
                 android:background="@drawable/round_borders"
-                android:ems="10"
-                android:hint="firstname"
+
+                android:hint="First name"
                 android:inputType="textPersonName"
                 android:textAlignment="center"
 
@@ -102,12 +98,13 @@
                 android:id="@+id/cr_lastname2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="10dp"
+
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginRight="10dp"
                 android:background="@drawable/round_borders"
-                android:hint="lastname"
+                android:hint="Last name"
                 android:inputType="textPersonName"
-
-
                 android:textAlignment="center"
                 android:textColor="#FFFFFF"
                 android:textColorHint="#FFFFFF"
@@ -117,10 +114,13 @@
                 android:id="@+id/cr_company2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+
+                android:layout_marginRight="10dp"
+                android:layout_marginBottom="10dp"
                 android:background="@drawable/round_borders"
-                android:ems="10"
-                android:hint="company name"
+                android:hint="Company name"
 
                 android:inputType="textPersonName"
                 android:textAlignment="center"
@@ -133,10 +133,10 @@
                 android:layout_width="match_parent"
 
                 android:layout_height="wrap_content"
-                android:layout_margin="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
                 android:background="@drawable/round_borders"
-                android:ems="10"
-                android:hint="job Title"
+                android:hint="Job Title"
                 android:inputType="textPersonName"
                 android:textAlignment="center"
                 android:textColor="#FFFFFF"
@@ -163,10 +163,10 @@
                 android:id="@+id/cr_phonenbre2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
                 android:background="@drawable/round_borders"
-                android:ems="20"
-                android:hint="phone nbre"
+                android:hint="Phone number"
                 android:inputType="number"
                 android:textAlignment="center"
 
@@ -174,6 +174,13 @@
                 android:textColorHint="#F6F3F1"
                 android:textSize="25sp" />
 
+            <TextView
+                android:id="@+id/createStatus2"
+                android:layout_width="242dp"
+                android:layout_height="21dp"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:textColor="#4CAF50" />
 
             <Button
                 android:id="@+id/createContact2"
@@ -212,8 +219,6 @@
 
         </LinearLayout>
 
-
-
         <TextView
             android:id="@+id/textView4"
             android:layout_width="wrap_content"
@@ -225,17 +230,8 @@
             app:layout_constraintStart_toStartOf="@+id/progressBar12"
             app:layout_constraintTop_toBottomOf="@+id/view4" />
 
-        <TextView
-            android:id="@+id/createStatus2"
-            android:layout_width="242dp"
-            android:layout_height="21dp"
 
-            android:gravity="center"
-            android:textColor="#4CAF50"
-            app:layout_constraintBottom_toBottomOf="@+id/TopView2"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/linearLayout2" />
 
-    </LinearLayout>
+    </LinearLayout>-->
 </FrameLayout>
+

@@ -14,22 +14,16 @@
         android:layout_height="match_parent"
         android:id="@+id/createfrag"
         android:orientation="vertical"
-        android:backgroundTint="@android:color/secondary_text_light_nodisable">
+        android:background="@drawable/gradient_grey"
+       >
         <TextView
-            android:layout_marginTop="70dp"
-            android:id="@+id/textView"
             android:layout_width="match_parent"
-            android:layout_height="85dp"
-            android:background="@drawable/transparent"
-            android:layout_marginBottom="20dp"
-            android:text="do you want to save this contact?"
-            android:textColor="@color/lightblue"
-            android:textSize="36sp"
-            android:gravity="center"
-            android:textStyle="bold|italic"
-            app:layout_constraintEnd_toEndOf="@+id/view4"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/view4" />
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="125dp"
+            android:text="Enter Contact details:"
+            android:textColor="@color/colorAccent"
+            android:textSize="30dp" />
       <!--  <View
             android:id="@+id/view4"
             android:layout_width="0dp"
@@ -50,16 +44,76 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.0" />
--->
+--><LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="140dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="left"
+            android:layout_marginLeft="10dp"
+            android:background="@drawable/transparent"
+            android:gravity="left"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:text="*First Name:"
+                android:textSize="17dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:text="*Last name:"
+                android:textSize="17dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:text="*Company:"
+                android:textSize="17dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:text="*Job title:"
+                android:textSize="17dp" />
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:text=" Email:"
+                android:textSize="17dp" />
+
+            <TextView
+                android:id="@+id/textView9"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:text=" Phone Number :"
+                android:textSize="17dp" />
+
+
+        </LinearLayout>
+
         <LinearLayout
             android:id="@+id/linearLayout"
-            android:layout_width="wrap_content"
+            android:layout_width="244dp"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:layout_marginLeft="10dp"
             android:layout_marginTop="5dp"
             android:layout_marginRight="10dp"
             android:gravity="center"
-            android:layout_gravity="center"
             android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -72,147 +126,144 @@
                 android:id="@+id/cr_firstname"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                android:background="@drawable/round_borders"
+                android:background="@color/white"
+                android:backgroundTintMode="add"
+                android:gravity="top"
 
-                android:hint="firstname"
-                android:inputType="textPersonName"
-                android:textAlignment="center"
-                android:textColor="#FFFFFF"
-                android:textColorHighlight="#F4F1F1"
-                android:textColorHint="#F6F6F6"
-                android:textSize="25sp" />
+                android:inputType="text"
+
+                android:textAlignment="gravity"
+                android:textColor="@color/black" />
 
             <EditText
                 android:id="@+id/cr_lastname"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                android:background="@drawable/round_borders"
-                android:hint="lastname"
-                android:inputType="textPersonName"
-
-
-                android:textAlignment="center"
-                android:textColor="#FFFFFF"
-                android:textColorHint="#FFFFFF"
-                android:textSize="25sp" />
+                android:layout_marginTop="5dp"
+                android:background="@color/white"
+                android:backgroundTintMode="add"
+                android:gravity="top"
+                android:inputType="text"
+                android:textAlignment="gravity"
+                android:textColor="@color/black" />
 
             <EditText
                 android:id="@+id/cr_company"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                android:background="@drawable/round_borders"
 
-                android:hint="company name"
+                android:layout_marginTop="9dp"
+                android:background="@color/white"
+                android:backgroundTint="@color/white"
+                android:backgroundTintMode="add"
+                android:gravity="top"
 
-                android:inputType="textPersonName"
-                android:textAlignment="center"
-                android:textColor="#FFFFFF"
-                android:textColorHint="#F1EDEA"
-                android:textSize="25sp" />
+                android:inputType="text"
+                android:textAlignment="gravity"
+                android:textColor="@color/black" />
 
             <EditText
                 android:id="@+id/cr_job"
                 android:layout_width="match_parent"
 
                 android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                android:background="@drawable/round_borders"
 
-                android:hint="job Title"
-                android:inputType="textPersonName"
-                android:textAlignment="center"
-                android:textColor="#FFFFFF"
-                android:textColorHint="#FFFFFF"
-                android:textSize="25sp" />
+                android:layout_marginTop="9dp"
+                android:background="@color/white"
+                android:backgroundTint="@color/white"
+                android:backgroundTintMode="add"
+                android:gravity="top"
+
+                android:inputType="text"
+                android:textAlignment="gravity"
+                android:textColor="@color/black" />
 
             <EditText
                 android:id="@+id/cr_email"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                android:background="@drawable/round_borders"
 
-                android:hint="username@email.com"
+                android:layout_marginTop="9dp"
+                android:background="@color/white"
+                android:backgroundTint="@color/white"
+                android:backgroundTintMode="add"
+                android:gravity="top"
 
                 android:inputType="textEmailAddress"
-                android:textAlignment="center"
-                android:textColor="#FFFFFF"
-
-                android:textColorHint="#F8F8F8"
-                android:textSize="25sp" />
+                android:textAlignment="gravity"
+                android:textColor="@color/black" />
 
             <EditText
                 android:id="@+id/cr_phonenbre"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                android:background="@drawable/round_borders"
+                android:layout_marginTop="9dp"
+                android:background="@color/grey"
+                android:backgroundTint="@color/grey"
+                android:backgroundTintMode="add"
+                android:gravity="top"
 
-                android:hint="phone nbre"
                 android:inputType="number"
-                android:textAlignment="center"
+                android:textAlignment="gravity"
+                android:textColor="@color/black" />
 
-                android:textColor="#FFFFFF"
-                android:textColorHint="#F6F3F1"
-                android:textSize="25sp" />
-            <TextView
-                android:id="@+id/createStatus"
-                android:layout_width="242dp"
-                android:layout_height="21dp"
-                android:layout_gravity="center"
-                android:textColor="#4CAF50"
-                android:gravity="center"
-                app:layout_constraintBottom_toBottomOf="@+id/TopView"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
-            <Button
-                android:id="@+id/createContact"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginRight="50dp"
-                android:layout_marginLeft="50dp"
-                android:layout_marginTop="5dp"
-                android:backgroundTint="@color/lightblue"
-                android:backgroundTintMode="src_over"
-                android:gravity="center"
-                android:text="Add contact to CRM"
-                app:cornerRadius="20dp" />
-            <Button
-                android:id="@+id/cancelCreation"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginLeft="50dp"
-                android:layout_marginRight="50dp"
-                android:backgroundTint="@color/colorAccent"
-                android:backgroundTintMode="src_over"
-                android:gravity="center"
-                android:text="Don't create"
-                app:cornerRadius="20dp" />
         </LinearLayout>
+    </LinearLayout>
 
 
 
+        <TextView
+            android:id="@+id/createStatus"
+            android:layout_width="242dp"
+            android:layout_height="21dp"
+            android:layout_gravity="center"
+            android:textColor="#4CAF50"
+            android:gravity="center"
+            app:layout_constraintBottom_toBottomOf="@+id/TopView"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="horizontal">
+        <Button
+            android:id="@+id/createContact"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+
+            android:backgroundTint="@color/lightblue"
+            android:backgroundTintMode="src_over"
+
+            android:text="SAVE"
+            app:cornerRadius="20dp" />
+        <Button
+            android:id="@+id/cancelCreation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+
+            android:backgroundTint="@color/colorAccent"
+            android:backgroundTintMode="src_over"
+            android:gravity="center"
+            android:text="cancel"
+            app:cornerRadius="20dp" />
 
 
-
-
-
+        </LinearLayout>
 
         <Button
             android:id="@+id/gotoSaveLogs"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="save this phone call into logs"
+            android:text="save this phone call"
             android:visibility="visible"
             android:layout_gravity="center"
 
              />
+
     </LinearLayout>
     <ProgressBar
         android:layout_width="wrap_content"

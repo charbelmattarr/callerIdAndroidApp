@@ -22,7 +22,7 @@
             android:layout_height="585dp"
             android:background="@drawable/gradient_grey"
             android:orientation="vertical"
-            android:padding="10dp">
+            >
 
             <LinearLayout xmlns:app="http://schemas.android.com/apk/res-auto"
                 android:id="@+id/bottomsheetWannabe"
@@ -34,10 +34,10 @@
 
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:gravity="center"
+                android:layout_gravity="left"
+                android:gravity="left"
                 android:orientation="horizontal"
                 app:cardBackgroundColor="@color/grey">
 
@@ -45,7 +45,7 @@
                     android:layout_width="100dp"
                     android:layout_height="match_parent"
                     android:layout_gravity="left"
-
+                    android:layout_marginLeft="10dp"
                     android:background="@drawable/transparent"
                     android:gravity="left"
                     android:orientation="vertical">
@@ -53,34 +53,34 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="phone number:" />
+                        android:text="Phone number:" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="contact:" />
+                        android:text="Contact:" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="date and time:" />
+                        android:text="Date and time:" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="duration:" />
+                        android:text="Duration:" />
 
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Subject:" />
+                        android:text="*Subject:" />
 
                     <TextView
                         android:id="@+id/textView9"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="description" />
+                        android:text="Description" />
 
 
                 </LinearLayout>
@@ -122,18 +122,18 @@
 
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginBottom="5dp"
                         android:background="@drawable/customborder"
                         android:backgroundTint="#FFFFFF"
                         android:backgroundTintMode="add"
-                        android:hint="needed"
-                        android:layout_marginBottom="5dp"
+                        android:gravity="top"
+
+                        android:inputType="text"
                         android:lines="1"
                         android:padding="0in"
-                        android:inputType="text"
-                        android:gravity="top"
                         android:textAlignment="gravity"
                         android:textColor="@color/black"
-                        android:textSize="15dp"/>
+                        android:textSize="15dp" />
 
                     <EditText
                         android:id="@+id/description"
@@ -154,14 +154,19 @@
                 </LinearLayout>
             </LinearLayout>
 
-
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:gravity="center"
+    android:orientation="horizontal">
             <Button
                 android:id="@+id/savephonecall"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:backgroundTint="@color/blue"
-                android:text="save phone call" />
+                android:backgroundTint="@color/lightblue"
+                android:text="Save" android:layout_margin="10dp" />
             <Button
             android:id="@+id/cancel"
             android:layout_width="wrap_content"
@@ -169,7 +174,8 @@
                 android:layout_gravity="center"
             android:backgroundTint="@color/colorAccent"
 
-            android:text="Don't save into CRM" />
+            android:text="Cancel" />
+</LinearLayout>
             <TextView
                 android:id="@+id/logsStatus"
                 android:layout_width="wrap_content"
@@ -177,6 +183,7 @@
                 android:layout_below="@+id/logscardView"
                 android:background="@drawable/transparent"
                 android:text="status"
+                android:visibility="gone"
                 android:textAlignment="center"
                 android:textColor="@color/green" />
 
