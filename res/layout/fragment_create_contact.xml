@@ -77,28 +77,28 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_margin="4dp"
-                                android:text="*First Name:"
+                                android:text="First Name*:"
                                 android:textSize="17dp" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_margin="5dp"
-                                android:text="*Last name:"
+                                android:text="Last name*:"
                                 android:textSize="17dp" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_margin="4dp"
-                                android:text="*Company:"
+                                android:text="Company*:"
                                 android:textSize="17dp" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_margin="4dp"
-                                android:text="*Job title:"
+                                android:text="Job title*:"
                                 android:textSize="17dp" />
 
 
@@ -113,7 +113,8 @@
                                 android:id="@+id/textView9"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_margin="4dp"
+                                android:layout_marginTop="7dp"
+                                android:layout_marginLeft="4dp"
                                 android:text=" Phone Number :"
                                 android:textSize="17dp" />
 
@@ -136,7 +137,7 @@
                                 android:background="@color/white"
                                 android:backgroundTintMode="add"
                                 android:gravity="top"
-
+                                android:layout_marginRight="10dp"
                                 android:inputType="text"
 
                                 android:textAlignment="gravity" />
@@ -150,7 +151,7 @@
                                 android:backgroundTint="@color/white"
                                 android:backgroundTintMode="add"
                                 android:gravity="top"
-
+                                android:layout_marginRight="10dp"
                                 android:inputType="text"
                                 android:textAlignment="gravity"
                                 android:textColor="@color/black" />
@@ -159,7 +160,7 @@
                                 android:id="@+id/cr_company2"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-
+                                android:layout_marginRight="10dp"
                                 android:layout_marginTop="9dp"
                                 android:background="@color/white"
                                 android:backgroundTint="@color/white"
@@ -174,7 +175,7 @@
                                 android:id="@+id/cr_job2"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-
+                                android:layout_marginRight="10dp"
 
                                 android:layout_marginTop="9dp"
                                 android:background="@color/white"
@@ -190,7 +191,7 @@
                                 android:id="@+id/cr_email2"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-
+                                android:layout_marginRight="10dp"
 
                                 android:layout_marginTop="9dp"
                                 android:background="@color/white"
@@ -211,7 +212,7 @@
                                 android:backgroundTint="@color/grey"
                                 android:backgroundTintMode="add"
                                 android:gravity="top"
-
+                                android:layout_marginRight="10dp"
                                 android:inputType="number"
                                 android:textAlignment="gravity"
                                 android:textColor="@color/black" />

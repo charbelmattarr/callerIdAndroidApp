@@ -47,11 +47,13 @@
 --><LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="30dp"
+        android:paddingBottom="30dp"
         android:orientation="horizontal">
 
         <LinearLayout
             android:layout_width="140dp"
-            android:layout_height="match_parent"
+            android:layout_height="227dp"
             android:layout_gravity="left"
             android:layout_marginLeft="10dp"
             android:background="@drawable/transparent"
@@ -62,28 +64,28 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="4dp"
-                android:text="*First Name:"
+                android:text="First Name*:"
                 android:textSize="17dp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
-                android:text="*Last name:"
+                android:text="Last name*:"
                 android:textSize="17dp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="4dp"
-                android:text="*Company:"
+                android:text="Company*:"
                 android:textSize="17dp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="4dp"
-                android:text="*Job title:"
+                android:text="Job title*:"
                 android:textSize="17dp" />
 
 
@@ -98,7 +100,8 @@
                 android:id="@+id/textView9"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="4dp"
+                android:layout_marginTop="4dp"
+
                 android:text=" Phone Number :"
                 android:textSize="17dp" />
 
@@ -109,10 +112,10 @@
             android:id="@+id/linearLayout"
             android:layout_width="244dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
+
             android:layout_marginLeft="10dp"
             android:layout_marginTop="5dp"
-            android:layout_marginRight="10dp"
+            android:layout_marginRight="20dp"
             android:gravity="center"
             android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -197,7 +200,7 @@
                 android:id="@+id/cr_phonenbre"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="9dp"
+                android:layout_marginTop="13dp"
                 android:background="@color/grey"
                 android:backgroundTint="@color/grey"
                 android:backgroundTintMode="add"
@@ -219,6 +222,7 @@
             android:layout_gravity="center"
             android:textColor="#4CAF50"
             android:gravity="center"
+            android:layout_marginTop="20dp"
             app:layout_constraintBottom_toBottomOf="@+id/TopView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -227,6 +231,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:layout_marginTop="20dp"
             android:orientation="horizontal">
         <Button
             android:id="@+id/createContact"

@@ -16,7 +16,7 @@
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="Crazy Phone LB org"
+        android:label="Caller Id"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.CallerIdApplication"
@@ -93,6 +93,12 @@
             android:name="com.example.calleridapplication.callReciever"
             android:enabled="true"
             android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.PHONE_STATE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.NEW_OUTGOING_CALL" />
+            </intent-filter>
             <intent-filter>
 
                 <!-- <action android:name="jason.wei.custom.intent.action.TEST" /> -->

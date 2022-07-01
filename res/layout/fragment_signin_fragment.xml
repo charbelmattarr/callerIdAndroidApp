@@ -60,7 +60,7 @@
             android:textColor="@color/white"
             android:text="Sign Out"
             android:layout_margin="5dp"
-            android:backgroundTint="@color/blue"
+            android:backgroundTint="@color/lightblue"
             android:enabled="false"/>
 
     </LinearLayout>
