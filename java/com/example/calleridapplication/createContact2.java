@@ -117,7 +117,7 @@ public class createContact2 extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view= inflater.inflate(layout.fragment_create_contact2, container, false);
+        View view= inflater.inflate(layout.fragment_create_contact, container, false);
         //EditText ETfirstname,ETlastname,ETcompany,ETjob,ETemail,ETphonenumber;
         ETfirstname = view.findViewById(id.cr_firstname2);
         ETlastname = view.findViewById(id.cr_lastname2);
@@ -163,7 +163,7 @@ public class createContact2 extends Fragment {
         btnCreateContact.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                cancel.setVisibility(View.GONE);
+
 
                 firstname=ETfirstname.getText().toString().trim();
                 lastname=ETlastname.getText().toString().trim();
@@ -319,7 +319,7 @@ public class createContact2 extends Fragment {
                         .build();
                 MediaType mediaType = MediaType.parse("application/json");
                 RequestBody body = RequestBody.create(mediaType, "{" +
-                        "\r\n\"firstname\": \""+firstname.toUpperCase().trim().charAt(0)+""+firstname.substring(1).trim()+"\"\r\n," +
+                        "\r\n\"firstname\": \""+firstname.toUpperCase().trim().charAt(0)+""+firstname.substring(1).toLowerCase().trim()+"\"\r\n," +
                         "\r\n \"lastname\": \""+lastname.toUpperCase().trim()+"\"\r\n," +
                         "\r\n    \"cr051_companyname\": \""+company.trim()+"\"\r\n," +
                         "\r\n    \"emailaddress1\": \""+email.trim()+"\"\r\n," +
@@ -370,7 +370,7 @@ public class createContact2 extends Fragment {
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-
+                                    cancel.setVisibility(View.GONE);
                                  //   progressbar.setVisibility(View.INVISIBLE);
                                     ETfirstname.setText("");
                                     ETlastname.setText("");
@@ -378,6 +378,7 @@ public class createContact2 extends Fragment {
                                     ETjob.setText("");
                                     ETemail.setText("");
                                     ETphonenumber.setText("");
+                                    createStatus.setTextColor(createContact2.this.getResources().getColor(R.color.green));
                                     createStatus.setText("added success!");
                                     hideProgressBar();
                                     addthisContactToDB(mobilephone);
@@ -728,7 +729,7 @@ public class createContact2 extends Fragment {
                 //    etag = dataobj.getString("@odata.etag");
                 email = dataobj.getString("emailaddress1");
                 mobilephone = dataobj.getString("mobilephone").trim();
-                ContactModel c = new ContactModel(contactid,lastname,firstname,company,jobTitle,email,mobilephone);
+                ContactModel c = new ContactModel(contactid,firstname,lastname,company,jobTitle,email,mobilephone);
                 if(dataBaseHelper.addOne(c)){
                     // Toast.makeText(,"added",Toast.LENGTH_LONG).show();
 

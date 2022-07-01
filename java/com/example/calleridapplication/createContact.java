@@ -152,7 +152,8 @@ public class createContact extends Fragment {
             Log.d("steps","opened, setting stuff");
             ETphonenumber.setEnabled(false);
             ETphonenumber.setClickable(false);
-            ETphonenumber.setText(callReciever.number);
+            System.out.println(callReciever.numbertofetch);
+            ETphonenumber.setText(callReciever.numbertofetch);
             first.firsttoCreate=false;
             // gotoSaveLogs.setVisibility(View.VISIBLE);
             // gotoSaveLogs.setEnabled(false);
@@ -189,8 +190,9 @@ public class createContact extends Fragment {
                     // gotoSaveLogs.setVisibility(View.VISIBLE);
                     // gotoSaveLogs.setEnabled(false);
                 }
+
                 mobilephone=ETphonenumber.getText().toString().trim();
-                mobilephone =callReciever.number;
+                //mobilephone =callReciever.number;
                 if(firstname.isEmpty() || lastname.isEmpty() || mobilephone.isEmpty()){
 
                     Toast.makeText(getActivity(),"make sure that all required fields are there!",Toast.LENGTH_LONG).show();
@@ -327,7 +329,7 @@ public class createContact extends Fragment {
                         .build();
                 MediaType mediaType = MediaType.parse("application/json");
                 RequestBody body = RequestBody.create(mediaType, "{" +
-                        "\r\n\"firstname\": \""+firstname.toUpperCase().trim().charAt(0)+""+firstname.substring(1).trim()+"\"\r\n," +
+                        "\r\n\"firstname\": \""+firstname.toUpperCase().trim().charAt(0)+""+firstname.substring(1).toLowerCase().trim()+"\"\r\n," +
                         "\r\n \"lastname\": \""+lastname.toUpperCase().trim()+"\"\r\n," +
                         "\r\n    \"cr051_companyname\": \""+company.trim()+"\"\r\n," +
                         "\r\n    \"emailaddress1\": \""+email.trim()+"\"\r\n," +
@@ -389,7 +391,7 @@ public class createContact extends Fragment {
                                     btnCreateContact.setText("saved!");
                                     btnCreateContact.setEnabled(true);
 
-                                    createStatus.setText("added success!");
+                                    createStatus.setText("added successfully!");
                                     cancel.setText("back");
                                     addthisContactToDB(mobilephone);
 
@@ -484,7 +486,7 @@ public class createContact extends Fragment {
                         gotoSaveLogs.setVisibility(View.VISIBLE);
 
                     }
-                    contactfound = new ContactModel(contactid,lname,name,Company,JobTitle,email,mobilephone);
+                    contactfound = new ContactModel(contactid,name,lname,Company,JobTitle,email,mobilephone);
                     dataBaseHelper.addOne(contactfound);
                     fetchLogs(contactfound);
                 }
@@ -879,7 +881,7 @@ public class createContact extends Fragment {
                 //    etag = dataobj.getString("@odata.etag");
                 email = dataobj.getString("emailaddress1");
                 mobilephone = dataobj.getString("mobilephone").trim();
-                ContactModel c = new ContactModel(contactid,lastname,firstname,company,jobTitle,email,mobilephone);
+                ContactModel c = new ContactModel(contactid,firstname,lastname,company,jobTitle,email,mobilephone);
                 if(dataBaseHelper.addOne(c)){
                     // Toast.makeText(,"added",Toast.LENGTH_LONG).show();
                 }else{

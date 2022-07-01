@@ -8,8 +8,17 @@ public class CallLogs {
     private String saved="0";
     private String callerid;
     private String calllogid;
+    private String Subject;
 
-    public CallLogs(String calllogid,String duration, String direction, String date, String phoneNbre, String saved, String callername) {
+    public String getSubject() {
+        return Subject;
+    }
+
+    public void setSubject(String subject) {
+        Subject = subject;
+    }
+
+    public CallLogs(String calllogid, String duration, String direction, String date, String phoneNbre, String saved, String callername, String Subject) {
         this.duration = duration;
         this.direction = direction;
         this.date = date;
@@ -17,6 +26,7 @@ public class CallLogs {
         this.saved = saved;
         this.callerid = callername;
         this.calllogid = calllogid;
+        this.Subject = Subject;
 
     }
 

@@ -31,13 +31,18 @@ public ForegroundService(){
     public void onCreate() {
         super.onCreate();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+        {
             startMyOwnForeground();
-        else
+            System.out.println("entered foreground1");
+        }
+        else{
             startForeground(1, new Notification());
-
+            System.out.println("entered foreground2");
+        }
         // create an instance of Window class 
         // and display the content on screen
         Window window=new Window(this);
+        System.out.println("entered foreground3");
         window.open();
 
 

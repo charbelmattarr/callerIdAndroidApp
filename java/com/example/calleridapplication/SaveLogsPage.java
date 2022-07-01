@@ -100,6 +100,9 @@ public class SaveLogsPage extends AppCompatActivity {
             contactFound = createContact2.contactfound;
         }else if(Window4Api.found) {
             contactFound = Window4Api.contactFound;
+        }else if(callReciever.open){
+            callReciever.open=false;
+            contactFound = callReciever.contactfound;
         }
         // set onClickListener on the remove button, which removes
         // the view from the window
@@ -128,6 +131,7 @@ public class SaveLogsPage extends AppCompatActivity {
         //subject.setTextColor(Integer.parseInt("0x00FF00"));//green
 
         ETdescription.setText("");
+        subject.setText("");
         // contact=findViewById(R.id.contact);
         timeDate.setText("");
         contact.setText("");
@@ -376,13 +380,19 @@ if(subject.getText().toString().isEmpty()){
                         @Override
                         public void run() {
                             Log.d("dateFormatSave",dateFormat1);
+
                             dataBaseHelper2 = new DataBaseHelper2(SaveLogsPage.this);
                             //  cl2 = dataBaseHelper2.fetchByDate(dateFormat1);
                             //    Log.d("fetch by date",cl2.toString());
-                            dataBaseHelper2.modifySaved(dateFormat1);
+                            Log.d("sub",sub);
+                         dataBaseHelper2.modifySaved(dateFormat1);
+                         dataBaseHelper2.modifySubject(dateFormat1,sub);
+                            Log.d("sub",sub);
+
                             logsStatus.setVisibility(View.VISIBLE);
                             // logsStatus.setTextColor(Integer.parseInt("#00FF00"));//green
                             logsStatus.setText("successfully added!");
+                            savephonecall.setVisibility(View.GONE);
                             savephonecall.setEnabled(false);
                             cancel.setText("back");
                         }
@@ -441,10 +451,14 @@ if(subject.getText().toString().isEmpty()){
         mSingleAccountApp.getCurrentAccountAsync(new ISingleAccountPublicClientApplication.CurrentAccountCallback(){
             @Override
             public void onAccountLoaded(@Nullable IAccount activeAccount){
+                if(activeAccount!=null){
               useremail = activeAccount.getUsername();
               System.out.println("useremail in function:"+useremail);
+            }else{
+                    logsCardView.setVisibility(View.GONE);
+                    logstatus1.setText("you need to sign in to save this phone call");
+                }
             }
-
             @Override
             public void onAccountChanged(@Nullable IAccount priorAccount,@Nullable IAccount currentAccount){
                 if(currentAccount == null){
@@ -589,8 +603,8 @@ if(subject.getText().toString().isEmpty()){
         int durationInt = (int)Double.parseDouble(callDuration);
         timeDate.setText(dateFormat.trim());
 
-        contact.setText(contactFound.getContact_fname() + "" + contactFound.getContact_lname() );
-        phonrNumber.setText(callReciever.number);
+        contact.setText(contactFound.getContact_fname() + " " + contactFound.getContact_lname() );
+        phonrNumber.setText(callReciever.numbertofetch);
         durationTxtView.setText(callDuration);
         //  if(cl2.getDuration()=="0") {
         durationTxtView.setText("MISSED");

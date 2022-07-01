@@ -83,6 +83,7 @@ public class Window {
     ListView emailList;
     static Boolean opened = false;
     static ContactModel contactFound = null;
+    public static boolean closed = false;
     public static boolean found=false;
     public IGraphServiceClient graphClient=null;
     public static ISingleAccountPublicClientApplication mSingleAccountApp;
@@ -106,6 +107,9 @@ public class Window {
    static String numberToFetch;
    DataBaseHelper dataBaseHelper;
     public Window(Context context){
+        System.out.println("i am inside");
+
+        closed=false;
         found=false;
         this.context = context;
       //  found = false;
@@ -123,6 +127,13 @@ public class Window {
                     // through any transparent parts
                     PixelFormat.TRANSLUCENT);
        }
+     /*   .addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+                | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
+        win.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+                | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        win.addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL);
+
+      */
         //getting layout inflater
         layoutInflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         //inflating the view with the custom layout we created
@@ -130,13 +141,15 @@ public class Window {
          list = new ArrayList<EmailModel>();
         list.add(e1);
         //list.add(e2);list.add(e3);
-opened = true;
+         opened = true;
+         System.out.println("opened1"+opened);
         dataBaseHelper = new DataBaseHelper(context);
         // set onClickListener on the remove button, which removes
         // the view from the window
         mView.findViewById(R.id.buttonClose).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                closed = true;
                 close();
             }
         });
@@ -310,8 +323,12 @@ public void search4contactLocaly(String number){
         if(contactFound.getContact_email().isEmpty() ||contactFound.getContact_email().equals("null")){
             Toast.makeText(context,"you dont know the email of this person",Toast.LENGTH_LONG).show();
         }
+
+
         options.add(new QueryOption("filter",
-                "(from/emailAddress/address) eq '"+email+"'"));
+                "sentDateTime ge 2022-01-01T00:00:00Z and (from/emailAddress/address) eq '"+email+"'"));
+        options.add(new QueryOption("$orderby",
+                "sentDateTime DESC"));
         signin_fragment.graphClient
                 .me()
                 .messages()
@@ -586,7 +603,9 @@ public void search4contactLocaly(String number){
             Toast.makeText(context,"you dont know the email of this person",Toast.LENGTH_LONG).show();
         }
         options.add(new QueryOption("filter",
-                "(from/emailAddress/address) eq '"+emails+"'"));
+                "sentDateTime ge 2022-01-01T00:00:00Z and (from/emailAddress/address) eq '"+emails+"'"));
+        options.add(new QueryOption("$orderby",
+                "sentDateTime DESC"));
         //token=authenticationResult.getAccessToken();
         //  storage.SaveAuthenticationState(authenticationResult.getAccessToken());
 
@@ -626,11 +645,11 @@ public void search4contactLocaly(String number){
 
 
     public void goToDynamics(){
-        if(contactid.isEmpty()){
+        if(contactFound.getContact_id().isEmpty() || contactFound.getContact_id().equals("")){
             Toast.makeText(context,"page not found!",Toast.LENGTH_LONG).show();
             return;
         }
-        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://orgc452f0fa.crm4.dynamics.com/main.aspx?appid=b9966deb-62c8-ec11-a7b5-0022489de0f3&forceUCI=1&pagetype=entityrecord&etn=contact&id="+contactid+""));
+        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://orgc452f0fa.crm4.dynamics.com/main.aspx?appid=b9966deb-62c8-ec11-a7b5-0022489de0f3&forceUCI=1&pagetype=entityrecord&etn=contact&id="+contactFound.getContact_id()+""));
         context.startActivity(browserIntent);
     }
 }

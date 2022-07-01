@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.example.CallerIdApplication.R;
 
@@ -31,6 +32,7 @@ public class Contacts extends Fragment {
    List contactsList;
    DataBaseHelper db;
    ImageView next;
+   TextView contactlistSize;
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
@@ -72,12 +74,19 @@ public class Contacts extends Fragment {
         // Inflate the layout for this fragment
        View v= inflater.inflate(R.layout.fragment_contacts, container, false);
         contactsListView = (ListView) v.findViewById(R.id.contactsListView);
+        contactlistSize = (TextView)v.findViewById(R.id.contactlistSize);
         db = new DataBaseHelper(getActivity());
         contactsList = db.getEveryone();
         ArrayAdapter adapter = new ContactsAdapter(getActivity(), R.layout.contactadapter_layout,contactsList);
         contactsListView.setAdapter(adapter);
+
+        if(contactsList.size()==1){
+            contactlistSize.setText(contactsList.size() + " contact");
+        }else {
+            contactlistSize.setText(contactsList.size() + " contacts");
+        }
         return v;
-    }
 
 
+        }
 }

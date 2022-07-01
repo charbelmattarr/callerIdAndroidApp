@@ -30,7 +30,7 @@ public class ContactModel {
         this.contact_mobilephone = contact_mobilephone;
     }
 
-    public ContactModel(String contact_id, String contact_lname, String contact_fname, String contact_company, String contact_job, String contact_email, String contact_mobilephone) {
+    public ContactModel(String contact_id, String contact_fname, String contact_lname, String contact_company, String contact_job, String contact_email, String contact_mobilephone) {
         this.contact_id = contact_id;
         this.contact_lname = contact_lname;
         this.contact_fname = contact_fname;

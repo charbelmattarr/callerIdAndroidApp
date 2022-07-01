@@ -195,11 +195,14 @@ ArrayAdapter adapter;
         }
         options.add(new QueryOption("filter",
                 "(from/emailAddress/address) eq '"+contact_email+"'"));
+        options.add(new QueryOption("orderby",
+                "sentDateTime desc"));
+
         signin_fragment.graphClient
                 .me()
                 .messages()
                 .buildRequest(options)
-                .top(1)
+                .top(2)
                 .get(new ICallback<IMessageCollectionPage>() {
 
                     @Override
@@ -378,7 +381,9 @@ Toast.makeText(relatedCallLogs.this,"account changed, please sign in again!",Toa
                         .buildClient();
 
         options.add(new QueryOption("filter",
-                "(from/emailAddress/address) eq '"+emailsss+"'"));
+                "sentDateTime ge 2022-01-01T00:00:00Z and (from/emailAddress/address) eq '"+emailsss+"'"));
+        options.add(new QueryOption("$orderby",
+                "sentDateTime DESC"));
         graphClient
                 .me()
                 .messages()

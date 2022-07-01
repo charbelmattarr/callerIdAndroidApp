@@ -61,7 +61,7 @@ public class EmailsAdapter2 extends ArrayAdapter<EmailModel> {
         holder.subject.setText(" "+message.getSubject());
         holder.time.setText(" "+message.getTime());
         if(!message.isRead()){
-       holder.read.setImageResource(R.drawable.ic_baseline_close_24);
+       holder.read.setImageResource(R.drawable.ic_baseline_done_one_tick);
         }
 
 

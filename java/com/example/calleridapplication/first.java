@@ -32,6 +32,7 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -83,6 +84,7 @@ public class first extends AppCompatActivity implements NavigationView.OnNavigat
     NavigationView navigationView;
     public static View mHeaderView;
     TextView signinStatus;
+    TextView titles;
     Toolbar toolbar;
     private static final String TAG = callReciever.class.getSimpleName();
      DrawerLayout drawerLayout ;
@@ -91,6 +93,7 @@ public class first extends AppCompatActivity implements NavigationView.OnNavigat
     DataBaseHelper dataBaseHelper;
     DataBaseHelper3 dataBaseHelper3;
     ProgressBar progressBar;
+    ImageView refresh;
     public static boolean firsttoCreate=false;
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -104,61 +107,82 @@ public class first extends AppCompatActivity implements NavigationView.OnNavigat
         checkOverlayPermission();
        signinStatus =findViewById(R.id.signinstatus);
        progressBar = (ProgressBar)findViewById(R.id.progressBarDrawer);
-
-        this.stopService(new Intent(this, ForegroundService.class));
-         startService2();
+       refresh = findViewById(R.id.refreshing);
+       titles = findViewById(R.id.titles);
+       titles.setText("");
+       refresh.setVisibility(View.GONE);
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG)
                 != PackageManager.PERMISSION_GRANTED ){
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.READ_CALL_LOG},1);
         }
+
+        this.stopService(new Intent(this, ForegroundService.class));
+         startService2();
+        if (getApplicationContext().checkSelfPermission(Manifest.permission.READ_PHONE_STATE)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Permission has not been granted, therefore prompt the user to grant permission
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_PHONE_STATE},
+                    1);
+        }
+
+        if (getApplicationContext().checkSelfPermission(Manifest.permission.PROCESS_OUTGOING_CALLS)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Permission has not been granted, therefore prompt the user to grant permission
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.PROCESS_OUTGOING_CALLS},
+                    1);
+        }
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
                 != PackageManager.PERMISSION_GRANTED ){
             ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.READ_PHONE_STATE},0);
+                    new String[]{Manifest.permission.READ_PHONE_STATE},1);
         }
         // startService();
 
 
         if(CallLogsAdapter.openCreate){
             Bundle bundle=first.this.getIntent().getExtras();
+            CallLogsAdapter.openCreate=false;
            String ids = bundle.getString("id").trim();
             Log.d("idinfirst",ids);
 
             openCreateContactsFragment2(ids);
-if(relatedCallLogs.openCallLogs) {
-    openCallLogsFragment();
-    return;
-}
+            return;
         }
-if(ContactsAdapter.openContactFrag){
+       if(relatedCallLogs.openCallLogs) {
+             openCallLogsFragment();
+               return;
+              }
 
-    openContactFragment();
-    ContactsAdapter.openContactFrag=false;
+              if(ContactsAdapter.openContactFrag){
+
+                openContactFragment();
+              ContactsAdapter.openContactFrag=false;
       //  if(callReciever.openCreate){
       //      Log.d("using","openCreate");
 
      //         openCreateContactsFragment();
-return;
-       }
+                      return;
+              }
        // openCallLogsFragment();
         //  openSignInFragment();
         if(com.example.calleridapplication.Window.found){
             Log.d("using","window.found");
             Window.found=false;
             openCreateContactsFragment();
-return;
+                 return;
         }
 
-if(callReciever.openedOnNotFound){
-
-   Log.d("using","openedOnNotFound");
-    firsttoCreate=true;
-    openCreateContactsFragment();
-return;
+           if(callReciever.openedOnNotFound){
+               Log.d("using","openedOnNotFound");
+             firsttoCreate=true;
+             openCreateContactsFragment();
+          return;
    // callReciever.openedOnNotFound=false;
 
-}
+                 }
 openCallLogsFragment();
 /*
         PublicClientApplication.createSingleAccountPublicClientApplication(first.this, R.raw.auth_config_single_account,new IPublicClientApplication.ISingleAccountApplicationCreatedListener(){
@@ -184,7 +208,23 @@ openCallLogsFragment();
             TextView userEmail = first.mHeaderView.findViewById(R.id.userEmail);
             userName.setText(dataBaseHelper3.getUser().getName());
             userEmail.setText(dataBaseHelper3.getUser().getEmail());
+            Menu menu = navigationView.getMenu();
+            menu.findItem(R.id.nav_signin).setTitle("Sign Out");
+        }else {
+            Menu menu = navigationView.getMenu();
+            menu.findItem(R.id.nav_signin).setTitle("Sign In");
         }
+
+
+        refresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(first.this,"refreshing...",Toast.LENGTH_SHORT).show();
+                showProgressBar();
+                openCallLogsFragment();
+            }
+        });
+
     }
 
 
@@ -193,6 +233,7 @@ openCallLogsFragment();
        drawerLayout = findViewById(R.id.drawerLayout);
        dehaze = findViewById(R.id.ImageMenu);
         toolbar = findViewById(R.id.toolbar);
+        toolbar.setTitle("");
         setSupportActionBar(toolbar);
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar,
@@ -239,16 +280,22 @@ openCallLogsFragment();
      //        break;
       case R.id.nav_contacts:
           item.setChecked(true);
+          showProgressBar();
+          fetchAllContacts();
             openContactFragment();
            break;
 
          case R.id.nav_updateDB:
              item.setChecked(true);
+             titles.setText("Updating...");
              showProgressBar();
              fetchAllContacts();
+             openContactFragment();
              break;
+
          case R.id.phonecalls:
              item.setChecked(true);
+
              openCallLogsFragment();
              break;
             }
@@ -259,10 +306,13 @@ openCallLogsFragment();
 
 
     private void openCallLogsFragment() {
+        //toolbar.setTitle("Phone Calls");
+       titles.setText("Phone calls");
+        refresh.setVisibility(View.VISIBLE);
         navigationView.setCheckedItem(R.id.opensavelogs);
-        toolbar.setTitle("Phone Calls");
-        CallLogsFrag frag = CallLogsFrag.newInstance();
 
+        CallLogsFrag frag = CallLogsFrag.newInstance();
+        hideProgressBar();
      //   navigationView.setItemTextColor(ColorStateList.valueOf(first.this.getResources().getColor(R.color.blue)));
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,frag).commit();
 
@@ -271,7 +321,8 @@ openCallLogsFragment();
 
 
     private  void openCreateContactsFragment() {
-        toolbar.setTitle("Create Contact");
+        titles.setText("Create Contact");
+        refresh.setVisibility(View.GONE);
         createContact frag = createContact.newInstance();
 
     //    navigationView.setItemTextColor(ColorStateList.valueOf(first.this.getResources().getColor(R.color.blue)));
@@ -280,7 +331,8 @@ openCallLogsFragment();
 
     }
     private  void openCreateContactsFragment2(String id) {
-        toolbar.setTitle("Create Contact");
+        titles.setText("Create Contact");
+        refresh.setVisibility(View.GONE);
         createContact2 frag = createContact2.newInstance(id);
 
       //  navigationView.setItemTextColor(ColorStateList.valueOf(first.this.getResources().getColor(R.color.blue)));
@@ -288,7 +340,8 @@ openCallLogsFragment();
 
     }
     private void openContactFragment() {
-        toolbar.setTitle("Contacts");
+        titles.setText("Contacts");
+        refresh.setVisibility(View.GONE);
         navigationView.setCheckedItem(R.id.nav_contacts);
         Contacts frag = Contacts.newInstance();
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,frag).commit();
@@ -308,7 +361,8 @@ openCallLogsFragment();
     }
 
     private void openSignInFragment() {
-        toolbar.setTitle("Sign in");
+        titles.setText("");
+        refresh.setVisibility(View.GONE);
         navigationView.setCheckedItem(R.id.nav_signin);
         signin_fragment frag = signin_fragment.newInstance();
  //       navigationView.setItemTextColor(ColorStateList.valueOf(first.this.getResources().getColor(R.color.blue)));
@@ -441,6 +495,7 @@ openCallLogsFragment();
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         //displaying the error in toast if occurrs
+                        hideProgressBar();
                         Toast.makeText(first.this, error.getMessage(), Toast.LENGTH_SHORT).show();
                         Log.e("errroor",">>"+error.toString());
                     }
@@ -482,6 +537,7 @@ openCallLogsFragment();
 
         } catch (JSONException e) {
             e.printStackTrace();
+            hideProgressBar();
         }
         hideProgressBar();
     }

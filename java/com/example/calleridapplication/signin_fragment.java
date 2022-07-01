@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment;
 
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -20,6 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.CallerIdApplication.R;
+import com.google.android.material.navigation.NavigationView;
 import com.google.gson.JsonObject;
 import com.microsoft.graph.authentication.IAuthenticationProvider;
 import com.microsoft.graph.concurrency.ICallback;
@@ -47,6 +49,8 @@ public class signin_fragment extends Fragment {
     private final static String[] SCOPES = {"Files.Read","Mail.Read"};
     private View view = null;
     private View v = null;
+    int count = 0;
+    NavigationView navigationView;
     //  final static String AUTHORITY = "https://login.microsoftonline.com/common";
     final static String AUTHORITY = "https://login.windows.net/common/oauth2/authorize?resource=https://api.businesscentral.dynamics.com";
     public  static String token;
@@ -120,9 +124,36 @@ public class signin_fragment extends Fragment {
             public void onAccountLoaded(@Nullable IAccount activeAccount){
                 updateUI(activeAccount);
               //  if(!is_signedin){
-                    signed = true;
 
-                    mSingleAccountApp.acquireTokenSilentAsync(SCOPES, AUTHORITY, getAuthSilentCallback());
+                    signed = true;
+                    if(!(dataBaseHelper3.getCount() == 0)){
+                        if(activeAccount != null){
+                        showProgressBar();
+                        TextView userName = first.mHeaderView.findViewById(R.id.userName);
+                        TextView userEmail = first.mHeaderView.findViewById(R.id.userEmail);
+                        userName.setText(dataBaseHelper3.getUser().getName());
+                        userEmail.setText(dataBaseHelper3.getUser().getEmail());
+                        hideProgressBar();
+                            signInButton.setVisibility(View.GONE);
+                            signOutButton.setVisibility(View.VISIBLE);
+
+                            if (navigationView != null) {
+                                Log.d("tTAG","should change the title");
+                                Menu menu = navigationView.getMenu();
+                                menu.findItem(R.id.nav_signin).setTitle("Sign Out");
+
+                                //menu.findItem(R.id.nav_pkg_manage).setVisible(false);//In case you want to remove menu item
+                              //  navigationView.setNavigationItemSelectedListener(getActivity());
+                            }
+                        return;
+                    }
+                    }
+
+                showProgressBar();
+                     mSingleAccountApp.acquireTokenSilentAsync(SCOPES, AUTHORITY, getAuthSilentCallback());
+
+
+
                     //is_signedin=true;
              //   }
                 //  openBrowserTabActivity();
@@ -132,6 +163,8 @@ public class signin_fragment extends Fragment {
             @Override
             public void onAccountChanged(@Nullable IAccount priorAccount,@Nullable IAccount currentAccount){
                 if(currentAccount == null){
+                    showProgressBar();
+                    dataBaseHelper3.deleteUser();
                     performOperationOnSignOut();
 
                     //      openBrowserTabActivity();
@@ -177,6 +210,8 @@ public class signin_fragment extends Fragment {
             public void onError(MsalException exception) {
                 /* Failed to acquireToken */
                 Log.d("TAG", "Authentication failed: " + exception.toString());
+                hideProgressBar();
+                Toast.makeText(getActivity(),"please sign in",Toast.LENGTH_LONG).show();
                 displayError(exception);
             }
             @Override
@@ -198,6 +233,8 @@ public class signin_fragment extends Fragment {
             @Override
             public void onError(MsalException exception) {
                 Log.d("TAG", "Authentication failed: " + exception.toString());
+                hideProgressBar();
+                Toast.makeText(getActivity(),"please sign in",Toast.LENGTH_LONG).show();
                 displayError(exception);
             }
         };
@@ -333,6 +370,13 @@ public class signin_fragment extends Fragment {
                         if(dataBaseHelper3.addOne(new User(displayName,Email))){
                             Log.d("user","added successfully");
                         }
+                        if (navigationView != null) {
+                            Menu menu = navigationView.getMenu();
+                            menu.findItem(R.id.nav_signin).setTitle("Sign Out");
+
+                            //menu.findItem(R.id.nav_pkg_manage).setVisible(false);//In case you want to remove menu item
+                            //  navigationView.setNavigationItemSelectedListener(getActivity());
+                        }
                         userName.setText(displayName);
                         userEmail.setText(Email);
                         hideProgressBar();
@@ -359,11 +403,16 @@ public class signin_fragment extends Fragment {
     private void performOperationOnSignOut() {
         signInButton.setVisibility(View.VISIBLE);
         signOutButton.setVisibility(View.GONE);
+        hideProgressBar();
         signInButton.setEnabled(true);
         final String signOutText = "Signed Out.";
         TextView userName = first.mHeaderView.findViewById(R.id.userName);
         TextView userEmail = first.mHeaderView.findViewById(R.id.userEmail);
-        dataBaseHelper3.deleteUser();
+        if(dataBaseHelper3.deleteUser()==1) {
+            Toast.makeText(getActivity(),"signed out",Toast.LENGTH_LONG).show();
+            }else{
+            Toast.makeText(getActivity(),"error signing out",Toast.LENGTH_LONG).show();
+        }
         userName.setText("username");
         userEmail.setText("username@org.onmicrosoft.com");
 
@@ -384,24 +433,36 @@ public class signin_fragment extends Fragment {
         is_signedin=false;
         view = inflater.inflate(R.layout.fragment_signin_fragment, container, false);
         if(view == null)Log.e("EMT VW","EMT VIEW");
-
+         navigationView = (NavigationView)view.findViewById(R.id.NavigationView);
         initializeUI();
         fetchButtonClicks(view);
         dataBaseHelper3 = new DataBaseHelper3(getActivity());
+        if(mSingleAccountApp==null){
         PublicClientApplication.createSingleAccountPublicClientApplication(getActivity(), R.raw.auth_config_single_account,new IPublicClientApplication.ISingleAccountApplicationCreatedListener(){
             @Override
             public void onCreated(ISingleAccountPublicClientApplication application){
 
                 if(getActivity() == null) Log.e("EMT","EMT");
-                showProgressBar();
+
                 mSingleAccountApp = application;
-                loadAccount();
+
+                    if(mSingleAccountApp!=null){
+                Log.d("Tag","entereed againnn");
+               loadAccount();
+
+
+                }
+
             }
             @Override
             public void onError(MsalException exception){
+                Log.d("TAG",exception.toString());
                 displayError(exception);
+
             }
         });
+        }
+
         if(ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.READ_PHONE_STATE)!= PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(getActivity(),new String[]{Manifest.permission.READ_PHONE_STATE} ,1);
         }
@@ -447,6 +508,14 @@ public class signin_fragment extends Fragment {
                 mSingleAccountApp.signOut(new ISingleAccountPublicClientApplication.SignOutCallback() {
                     @Override
                     public void onSignOut() {
+                        if (navigationView != null) {
+                            Log.d("tTAG","should change the title");
+                            Menu menu = navigationView.getMenu();
+                            menu.findItem(R.id.nav_signin).setTitle("Sign in");
+
+                            //menu.findItem(R.id.nav_pkg_manage).setVisible(false);//In case you want to remove menu item
+                            //  navigationView.setNavigationItemSelectedListener(getActivity());
+                        }
                         signInButton.setEnabled(true);
                         signInButton.setVisibility(View.VISIBLE);
                         signOutButton.setVisibility(View.GONE);

@@ -1,5 +1,6 @@
 package com.example.calleridapplication;
 
+import android.Manifest;
 import android.animation.Keyframe;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
@@ -7,6 +8,7 @@ import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Build;
 import android.provider.CallLog;
@@ -26,6 +28,8 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.example.CallerIdApplication.R;
 import com.google.android.material.navigation.NavigationView;
@@ -40,20 +44,65 @@ public class callReciever extends BroadcastReceiver {
   public static String numbertofetch;
   public static String numbertocreate="bonjour";
   public static Boolean openedOnNotFound = false;
+  public static ContactModel contactfound = null;
   public static boolean openCreate=false;
-
+  public static boolean open =false;
   // Dialog dialog;
     DataBaseHelper dt = null;
     DataBaseHelper2 dt2 = null;
     @Override
     public void onReceive(Context context, Intent intent) {
+        String phoneIncomingNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
+        String phoneOutgoingNumber = intent.getStringExtra(Intent.EXTRA_PHONE_NUMBER);
+        System.out.println("in"+ phoneIncomingNumber);
+        System.out.println("out"+ phoneOutgoingNumber);
+        String number = "null";
+        Log.d("TAG","phoone number"+number);
+        if(phoneIncomingNumber !=null){
+            number = phoneIncomingNumber;
+            Log.d("TAG","phoone in"+number);
+        }else if(phoneOutgoingNumber!= null){
+            number = phoneOutgoingNumber;
+            Log.d("TAG","phoone out"+number);
+        }
+
+        open = true;
          ctx = context;
          dt = new DataBaseHelper(context);
         dt2 = new DataBaseHelper2(context);
+        String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
 
+        /*
+        TelephonyManager telephony = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
+
+        telephony.listen(new PhoneStateListener(){
+            @Override
+            public void onCallStateChanged(int state, String incomingNumber) {
+
+                super.onCallStateChanged(state, incomingNumber);
+                String state1 = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
+                // if(state1.equals(TelephonyManager.EXTRA_STATE_RINGING)){
+                Toast.makeText(context,"fetit",Toast.LENGTH_LONG).show();
+                Log.d("call","started");
+                if(!incomingNumber.isEmpty() && !incomingNumber.equals("null")){
+                    number = incomingNumber;
+                    Toast.makeText(context,"ok"+incomingNumber,Toast.LENGTH_LONG).show();
+
+                    // loop(context,number);
+                    //if(count == 1){
+                    //showDialog(context,number);
+
+                    //    }
+
+                }
+
+                //  }
+            }
+        },PhoneStateListener.LISTEN_CALL_STATE);
+
+         */
         if (intent.getAction().equals("android.intent.action.PHONE_STATE")) {
 
-            String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
 
             //if(state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)){
             //Log.d(TAG, "Inside Extra state off hook");
@@ -65,7 +114,9 @@ public class callReciever extends BroadcastReceiver {
 
 //  running          if (state.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
 //                //Log.e(TAG, "Inside EXTRA_STATE_RINGING");
-//                String number = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
+                //String number = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
+
+       //     String number = phoneOutgoingNumber != null ? phoneOutgoingNumber : (phoneIncomingNumber != null ? phoneIncomingNumber : "");
 //                System.out.println("The Caller Number is: " + number);
 //                showToast(context, "The Caller Number is: " + number);
 //                //Log.e(TAG, "incoming number : " + number);
@@ -83,20 +134,59 @@ public class callReciever extends BroadcastReceiver {
                 //showToast(context, "Call started...");
 
             } else if (state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
+                Window.opened=false;
+                Window4Api.opened=false;
                  getLogs();
                //  if(direction.equals("OUTGOING")) {
-                   //  startService();
+                 //    startService();
                  //    openpopUpService( context,number);
 
                //  }
-                Window.opened=false;
+
+
                 if(!number.isEmpty() && number != null){
+                    Log.d("number",number);
                     numbertofetch = number;
+                    contactfound =dt.fetchcontact(numbertofetch);
+                    Log.d("numbertofetch",numbertofetch);
+                    Log.d("cl->>",contactfound.toString());
                 }
 Log.d("logs","we will be adding the logs to database later");
              //   addLogToDB2(context);
                 Log.d("steps","call ended");
-                if(Window.found || Window4Api.found){
+
+                if(contactfound.getContact_id().equals("")){
+                    // we dont have a contact with this number
+                    Log.d("cl->>",contactfound.toString());
+                    numbertocreate = number;
+                    System.out.println("closed->"+Window.closed);
+                    if(!numbertocreate.equals("null")){
+                        if(Window.closed){
+                            System.out.println("closed->"+Window.closed);
+                            Window.closed = false;
+                            return;
+                        }
+                    openAppTocreate(context,number);
+                    }
+                }else {
+                    if(!number.equals("null")){
+                    Log.d("cl->>",contactfound.toString());
+                    System.out.println("closed->"+Window.closed);
+                    if(Window.closed){
+                        System.out.println("closed->"+Window.closed);
+                        Window.closed = false;
+                        return;
+                    }  }
+                    openpopUpService( context,number);
+
+                }
+             /*
+
+
+
+              ///// TRYING TO MAKE OUTGOING WORK ///////
+
+              if(Window.found || Window4Api.found){
                     Log.d("steps","ctct found");
                     openpopUpService( context,number);
 
@@ -113,23 +203,31 @@ Log.d("logs","we will be adding the logs to database later");
                     Log.e("start service error",e.toString());
                     showToast(context,e.toString());
                     showToast(context,"error opening second one");
-                }
+                }*/
 
                        // getLogs();
             } else if (state.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
-             number = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
-            if( Window.opened){
+                Log.d("TAG","RINGING");
+            // number = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
+            if(Window.opened){
+                System.out.println("openedfalse"+opened);
+                Log.d("TAG","window already opened!");
+                Window.opened=false;
                return;
                        }
-      if(!Window.opened){
-       if(!number.isEmpty() && number != null){
+                System.out.println("opened2"+Window.opened);
+      if(!Window.opened ){
+       if(!number.isEmpty() && !number.equals("null")){
            numbertofetch = number;
+           Log.d("TAG","should opn");
            System.out.println("The Caller Number is Ringing:  " + number);
            showToast(context, "Incoming call... Number is: " + number);
               //  openBottomFragment(context,number);
 
          try{
+             System.out.println("eum should opennn");
            startService();
+             System.out.println("eum should have openeddd");
            opened++;
          }catch(Exception e){
              Log.e("start service error",e.toString());
@@ -501,18 +599,22 @@ public boolean check_if_number_isEmpty(String nbre){
     }
     public void startService(){
     if(ctx == null){
-        Log.e("error","ctx null");
+        Log.e("errorrrr","ctx null");
         return;
     }
+    System.out.println("opening");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // check if the user has already granted
             // the Draw over other apps permission
+            System.out.println("opening1");
             if(Settings.canDrawOverlays(ctx)) {
+                System.out.println("opening2");
                 // start the service based on the android version
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    System.out.println("opening3");
                     ctx.startForegroundService(new Intent(ctx, ForegroundService.class));
                 } else {
-
+                    System.out.println("opening4");
                  //   ctx.startService(new Intent(ctx, ForegroundService.class));
                     Intent i = new Intent(ctx,Window4Api.class);
                     i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -520,6 +622,7 @@ public boolean check_if_number_isEmpty(String nbre){
                 }
             }
         }else{
+            System.out.println("opening5");
             Intent i = new Intent(ctx,Window4Api.class);
             ctx.startActivity(i);
          //  ctx.startService(new Intent(ctx, ForegroundService.class));

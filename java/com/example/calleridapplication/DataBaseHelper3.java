@@ -94,6 +94,21 @@ public class DataBaseHelper3 extends SQLiteOpenHelper {
 
         return u;
     }
+
+
+    public int getCount(){
+        String queryString = "SELECT * FROM "+SETTINGS;
+        SQLiteDatabase db = this.getWritableDatabase();
+int count= 0;
+        try (Cursor cursor = db.rawQuery(queryString,null)) {
+            if (cursor.moveToFirst()) {
+                count++;
+                } while (cursor.moveToNext());
+
+    }
+        return count;
+    }
+
     public int deleteUser(){
         String queryString = "DELETE FROM "+SETTINGS+" WHERE "+ID+ "=1";
         SQLiteDatabase db = this.getWritableDatabase();

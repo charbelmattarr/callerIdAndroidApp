@@ -47,6 +47,7 @@ import java.util.List;
 public class Window4Api extends AppCompatActivity {
     ListView emailList;
     static ContactModel contactFound = null;
+    static boolean opened =false;
     public static boolean found=false;
     EmailModel e1 = new EmailModel("emailsubject","time");
     EmailModel e2 = new EmailModel("payment issus","25-05-2022");
@@ -71,7 +72,7 @@ public class Window4Api extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_window4_api);
 
-
+   opened = true;
         list = new ArrayList<EmailModel>();
         list.add(e1);
         //list.add(e2);list.add(e3);
@@ -282,7 +283,7 @@ public class Window4Api extends AppCompatActivity {
             public void run() {
                 ArrayAdapter itemsAdapter =
                         new MailsAdapter(Window4Api.this, R.layout.mailsadapter_layout, emailSubjects);
-
+               emailList.setVisibility(View.VISIBLE);
                 emailList.setAdapter(itemsAdapter);
 
 

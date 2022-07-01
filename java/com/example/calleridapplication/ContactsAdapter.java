@@ -75,7 +75,18 @@ public class ContactsAdapter extends ArrayAdapter<ContactModel> {
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
-
+        holder.phonenbre.setVisibility(View.VISIBLE);
+        holder.job.setVisibility(View.VISIBLE);
+        holder.company.setVisibility(View.VISIBLE);
+        if(getItem(position).getContact_mobilephone().equals("null") || contact.getContact_mobilephone().isEmpty() || contact.getContact_mobilephone().equals("")){
+            holder.phonenbre.setVisibility(View.GONE);
+        }
+        if(getItem(position).getContact_job().equals("null") || contact.getContact_job().equals("") || contact.getContact_job().isEmpty()){
+            holder.job.setVisibility(View.GONE);
+        }
+        if(getItem(position).getContact_company().equals("null")){
+            holder.company.setVisibility(View.GONE);
+        }
 
 
        holder.next.setOnClickListener(new View.OnClickListener() {
@@ -85,6 +96,7 @@ public class ContactsAdapter extends ArrayAdapter<ContactModel> {
                openCalllogsRelated(mContext,getItem(position));
            }
        });
+
         holder.fullname.setText(contact.getContact_fname() + " " +contact.getContact_lname());
         holder.company.setText(contact.getContact_company());
         holder.job.setText(contact.getContact_job());
@@ -95,6 +107,7 @@ public class ContactsAdapter extends ArrayAdapter<ContactModel> {
                      openPopUp(getItem(position),mContext,v);
             }
         });
+
         return convertView;
     }
 

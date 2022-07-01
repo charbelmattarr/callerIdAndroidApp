@@ -39,6 +39,8 @@ public class CallLogsAdapter extends ArrayAdapter<CallLogs> {
         TextView contactname;
         Button isSaved;
         ImageView direction;
+        TextView Subject;
+
     }
 
     public CallLogsAdapter(Context context, int resource, List<CallLogs> calllogs) {
@@ -66,24 +68,29 @@ public class CallLogsAdapter extends ArrayAdapter<CallLogs> {
             holder.contactname = convertView.findViewById(R.id.textView3);
             holder.isSaved = convertView.findViewById(R.id.button2);
             holder.direction = convertView.findViewById(R.id.imageView);
-
+            holder.Subject = convertView.findViewById(R.id.Subject1);
             convertView.setTag(holder);
         } else {
             holder = (CallLogsAdapter.ViewHolder) convertView.getTag();
         }
-
-
+        holder.Subject.setVisibility(View.VISIBLE);
+if(calllog.getSubject().equals("")){
+    holder.Subject.setVisibility(View.GONE);
+}else {
+    holder.Subject.setText("subject :"+calllog.getSubject());
+}
+        holder.Subject.setText(calllog.getSubject());
         if(calllog.getDuration().equals("0")) {
             holder.duration.setText("MISSED CALL");
         }else {
-            holder.duration.setText(calllog.getDuration() +" minutes");
+            holder.duration.setText(calllog.getDuration() +" minute(s)");
         }
         holder.time.setText(calllog.getDate());
         //if(dt1.getContactName(calllog.getCallerid()).equals("null")){
       //      holder.contactname.setText("N/A");
      //   }else{
         holder.contactname.setText(calllog.getPhoneNbre());
-        if(!(dt1.fetchcontact(calllog.getPhoneNbre()).getContact_id().equals(""))){
+        if(!(dt1.fetchcontact(calllog.getPhoneNbre()).getContact_id().equals("")) || !dt1.getContactName(calllog.getCallerid()).equals("") ){
             dt2.modifyContactid(calllog.getDate(),dt1.fetchcontact(calllog.getPhoneNbre()));
             holder.contactname.setText(dt1.getContactName(calllog.getCallerid()));
         }
@@ -113,7 +120,7 @@ public class CallLogsAdapter extends ArrayAdapter<CallLogs> {
             holder.isSaved.setClickable(false);
             holder.isSaved.setBackgroundColor(getContext().getResources().getColor(R.color.lightblue));
 
-            holder.isSaved.setText("Go to dynamics!");
+            holder.isSaved.setText("Open");
             holder.isSaved.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -122,7 +129,7 @@ public class CallLogsAdapter extends ArrayAdapter<CallLogs> {
             });
           //  holder.isSaved.setTextColor(0x00000);
         }else {
-            holder.isSaved.setText("Save to DYNAMICS");
+            holder.isSaved.setText("Save");
             holder.isSaved.setEnabled(true);
             holder.isSaved.setBackgroundColor(getContext().getResources().getColor(R.color.grey));
          //   holder.isSaved.setBackgroundColor(0x008000);
