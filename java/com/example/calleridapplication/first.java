@@ -71,11 +71,20 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.w3c.dom.Text;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.RequestBody;
 
 public class first extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
@@ -312,7 +321,13 @@ openCallLogsFragment();
         navigationView.setCheckedItem(R.id.opensavelogs);
 
         CallLogsFrag frag = CallLogsFrag.newInstance();
-        hideProgressBar();
+        first.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                hideProgressBar();
+            }
+        });
+
      //   navigationView.setItemTextColor(ColorStateList.valueOf(first.this.getResources().getColor(R.color.blue)));
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,frag).commit();
 
@@ -477,10 +492,143 @@ openCallLogsFragment();
             c.close();
         }
     }
+
     private void fetchAllContacts() {
 
 
 
+
+
+
+       OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(50, TimeUnit.SECONDS)
+                .writeTimeout(50, TimeUnit.SECONDS)
+                .readTimeout(50, TimeUnit.SECONDS)
+                .build();
+
+        MediaType mediaType = MediaType.parse("application/json");
+        RequestBody body = RequestBody.create(mediaType, "");
+        okhttp3.Request request = new okhttp3.Request.Builder()
+                .url("https://calleridcrmapi.azure-api.net/contacts")
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json")
+               // .get()
+                //.addHeader("Cookie", "ReqClientId=30c78179-6c3a-4708-8376-907a89493c54; last_commit_time=2022-05-31 12:54:18Z; orgId=8b7545a7-1d2b-48d7-be9d-832648fff0e3")
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.e("okhttp1",e.toString());
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(Call call, okhttp3.Response response) throws IOException {
+                if (!response.isSuccessful()) {
+
+                    Log.e("okhttp2",response.body().string());
+                    Toast.makeText(first.this,"not successful",Toast.LENGTH_LONG).show();
+
+                    throw new IOException("Unexpected code " + response);
+                }else {
+                    String responseBody = response.body().string();
+                    Log.d("strr->>0",responseBody);
+                    parseJSON(responseBody);
+
+                }
+            }
+
+
+        });
+    }
+
+/*
+*
+* OkHttpClient client = new OkHttpClient().newBuilder()
+                        .build();
+                MediaType mediaType = MediaType.parse("application/json");
+                RequestBody body = RequestBody.create(mediaType, "{" +
+                        "\r\n\"firstname\": \""+firstname.toUpperCase().trim().charAt(0)+""+firstname.substring(1).toLowerCase().trim()+"\"\r\n," +
+                        "\r\n \"lastname\": \""+lastname.toUpperCase().trim()+"\"\r\n," +
+                        "\r\n    \"cr051_companyname\": \""+company.trim()+"\"\r\n," +
+                        "\r\n    \"emailaddress1\": \""+email.trim()+"\"\r\n," +
+                        "\r\n    \"jobtitle\": \""+job.trim()+"\"\r\n," +
+                        "\r\n    \"mobilephone\": \""+mobilephone.trim()+"\"\r\n}");
+
+                okhttp3.Request request = new okhttp3.Request.Builder()
+                        .url("https://calleridcrmapi.azure-api.net/contacts")
+                        .method("POST", body)
+                        .addHeader("Content-Type", "application/json")
+                        //.addHeader("Cookie", "ReqClientId=30c78179-6c3a-4708-8376-907a89493c54; last_commit_time=2022-05-31 12:54:18Z; orgId=8b7545a7-1d2b-48d7-be9d-832648fff0e3")
+                        .build();
+                client.newCall(request).enqueue(new Callback() {
+                    @Override
+                    public void onFailure(Call call, IOException e) {
+                        Log.e("okhttp1",e.toString());
+                        e.printStackTrace();
+                    }
+
+                    @Override
+                    public void onResponse(Call call, final Response response) throws IOException {
+                        if (!response.isSuccessful()) {
+
+                            Log.e("okhttp2",response.toString());
+
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+
+
+                                    ETfirstname.setText("");
+                                    ETlastname.setText("");
+                                    ETcompany.setText("");
+                                    ETjob.setText("");
+                                    ETemail.setText("");
+                                    ETphonenumber.setText("");
+                                    createStatus.setTextColor(Integer.parseInt("#eb4b4b"));
+                                    createStatus.setText("unsuccessfull!");
+                                    btnCreateContact.setEnabled(false);
+                                }
+                            });
+
+                            throw new IOException("Unexpected code " + response);
+                        }else{
+                            //  Toast.makeText(getActivity(),"sucess",Toast.LENGTH_LONG).show();
+
+                            Log.e("okhttp2",response.toString());
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+
+                                    hideProgressBar();
+                                    ETfirstname.setText("");
+                                    ETlastname.setText("");
+                                    ETcompany.setText("");
+                                    ETjob.setText("");
+                                    ETemail.setText("");
+                                    ETphonenumber.setText("");
+                                    btnCreateContact.setText("saved!");
+                                    btnCreateContact.setEnabled(true);
+
+                                    createStatus.setText("added successfully!");
+                                    cancel.setText("back");
+                                    addthisContactToDB(mobilephone);
+
+                                }
+                            });
+
+                            Log.d("create:","success");
+                        }
+
+                        // you code to handle response
+                    }
+
+                });
+            }
+        });
+*
+* */
+/*
         StringRequest stringRequest = new StringRequest(Request.Method.GET,
                 URL_GETALLCONTACTS,
                 new Response.Listener<String>() {
@@ -496,17 +644,18 @@ openCallLogsFragment();
                     public void onErrorResponse(VolleyError error) {
                         //displaying the error in toast if occurrs
                         hideProgressBar();
-                        Toast.makeText(first.this, error.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(first.this, error.getMessage(), Toast.LENGTH_LONG).show();
                         Log.e("errroor",">>"+error.toString());
                     }
                 });
 
-        // request queue
+
         RequestQueue requestQueue = Volley.newRequestQueue(this);
 
         requestQueue.add(stringRequest);
+        }
+*/
 
-    }
 
     private void parseJSON(String response) {
 
@@ -517,8 +666,9 @@ openCallLogsFragment();
             int size = 100;
             //   if(jsonObject.getString("status").equals("true")){
             JSONArray callerid = jsonObject.getJSONArray("value");
-      //      for (int i = 0; i < callerid.length(); i++) {
-            for (int i = 0; i < size; i++) {
+            for (int i = 0; i < callerid.length(); i++) {
+                Log.d("i->>", String.valueOf(i));
+            //      for (int i = 0; i < size; i++) {
                 //    String name,JobTitle,Company,etag,contactid;
                 JSONObject dataobj = callerid.getJSONObject(i);
                 firstname =dataobj.getString("firstname");
@@ -539,6 +689,7 @@ openCallLogsFragment();
             e.printStackTrace();
             hideProgressBar();
         }
+        Log.d("stopppped...","updating");
         hideProgressBar();
     }
     public void startService2(){
@@ -562,24 +713,35 @@ openCallLogsFragment();
     }
 
     private void showProgressBar() {
+        first.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                first.this.findViewById(R.id.progressBarDrawer)
+                        .setVisibility(View.VISIBLE);
+                first.this.findViewById(R.id.fragment_container)
+                        .setEnabled(false);
+                first.this.findViewById(R.id.fragment_container)
+                        .setVisibility(View.INVISIBLE);
+            }
+        });
 
-        first.this.findViewById(R.id.progressBarDrawer)
-                .setVisibility(View.VISIBLE);
-        first.this.findViewById(R.id.fragment_container)
-                .setEnabled(false);
-        first.this.findViewById(R.id.fragment_container)
-                .setVisibility(View.INVISIBLE);
 
     }
 
     private void hideProgressBar() {
+        first.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                first.this.findViewById(R.id.progressBarDrawer)
+                        .setVisibility(View.GONE);
+                first.this.findViewById(R.id.fragment_container)
+                        .setEnabled(true);
+                first.this.findViewById(R.id.fragment_container)
+                        .setVisibility(View.VISIBLE);
+            }
+        });
 
-        first.this.findViewById(R.id.progressBarDrawer)
-                .setVisibility(View.GONE);
-        first.this.findViewById(R.id.fragment_container)
-                .setEnabled(true);
-        first.this.findViewById(R.id.fragment_container)
-                .setVisibility(View.VISIBLE);
+
     }
 }
 
