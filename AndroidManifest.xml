@@ -15,21 +15,31 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/ic_javista_logo"
         android:label="Caller Id"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/ic_javista_logo_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.CallerIdApplication"
         android:usesCleartextTraffic="true"
         tools:replace="android:theme">
         <activity
+            android:name="com.example.calleridapplication.SplashActivity"
+            android:exported="true" >
+            <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+
+        <category android:name="android.intent.category.LAUNCHER" />
+    </intent-filter>
+        </activity>
+        <activity
             android:name="com.example.calleridapplication.Window4Api"
-            android:exported="true"
             android:enabled="true"
-            />
-       <!-- <activity
+            android:exported="true" />
+        <!--
+ <activity
             android:name="com.example.calleridapplication.EmailsAdapter2"
-            android:exported="false" />-->
+            android:exported="false" />
+        -->
         <activity
             android:name="com.example.calleridapplication.deletePopUp"
             android:exported="false" />
@@ -67,11 +77,11 @@
         <activity
             android:name="com.example.calleridapplication.first"
             android:exported="true">
-            <intent-filter>
+          <!--  <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            </intent-filter>-->
         </activity>
         <activity
             android:name="com.microsoft.identity.client.BrowserTabActivity"
