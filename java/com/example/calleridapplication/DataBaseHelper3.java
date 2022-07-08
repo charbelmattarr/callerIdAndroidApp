@@ -39,7 +39,7 @@ public class DataBaseHelper3 extends SQLiteOpenHelper {
     public boolean addOne(User u){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
-        //cv.put(ID,1);
+        cv.put(ID,1);
         cv.put(USERNAME,u.getName());
         cv.put(EMAIL,u.getEmail());
 
@@ -113,7 +113,7 @@ int count= 0;
         String queryString = "DELETE FROM "+SETTINGS+" WHERE "+ID+ "=1";
         SQLiteDatabase db = this.getWritableDatabase();
 
-        int c = db.delete(SETTINGS,ID+" = 1",null);
+        int c = db.delete(SETTINGS,null,null);
         if(c == -1){
             return 0;
         }return 1;

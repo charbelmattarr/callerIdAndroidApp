@@ -76,6 +76,7 @@ public class createContact extends Fragment {
 
     DataBaseHelper dataBaseHelper;
     DataBaseHelper2 dataBaseHelper2;
+    DataBaseHelper3 dataBaseHelper3;
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
@@ -138,6 +139,7 @@ public class createContact extends Fragment {
         ETphonenumber.setEnabled(true);
         dataBaseHelper = new DataBaseHelper(getActivity().getApplicationContext());
         dataBaseHelper2 = new DataBaseHelper2(getActivity().getApplicationContext());
+        dataBaseHelper3 = new DataBaseHelper3(getActivity().getApplicationContext());
         gotoSaveLogs.setVisibility(View.GONE);
         createStatus.setTextColor(createContact.this.getResources().getColor(R.color.green));
         createStatus.setText("");
@@ -161,6 +163,10 @@ public class createContact extends Fragment {
         btnCreateContact.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(dataBaseHelper3.getCount()!=1){
+                    Toast.makeText(getActivity(),"you need to sign in to perform this action.",Toast.LENGTH_LONG).show();
+                    return;
+                }
                 createStatus.setTextColor(createContact.this.getResources().getColor(R.color.green));
                 createStatus.setText("");
                 firstname=ETfirstname.getText().toString().trim();
@@ -204,6 +210,7 @@ public class createContact extends Fragment {
                     @Override
                     public void run() {
                      showProgressBar();
+                     createStatus.setText("");
                     /*    for(int i=0;i<1000;i++){
                              createContactinCRM3("firstname","lastname","company","job","email","mobilephone");
                         }*/
@@ -359,7 +366,7 @@ public class createContact extends Fragment {
                                 @Override
                                 public void run() {
 
-
+                                    hideProgressBar();
                                     ETfirstname.setText("");
                                     ETlastname.setText("");
                                     ETcompany.setText("");
@@ -666,8 +673,15 @@ public class createContact extends Fragment {
                     String callDayTimes = String.valueOf(dateFormat);
                     //DateTimeFormatter dt = new DateTimeFormatterBuilder(dateFormat);
                     //Log.d('DATETIME:',dt.formatGmt('yyyy-MM-dd\'T\'HH:mm:ss.SSS\'Z\''));
-                    if(phNumber.contains("+961")){
-                        phNumber=phNumber.replace("+961","");
+                  //  String nbre=phNumber;
+                    if(!phNumber.contains("+961") && !phNumber.contains("+") && !phNumber.equals("111") ){
+                        if(phNumber.trim().startsWith("0")){
+                            phNumber = phNumber.replace(String.valueOf(phNumber.charAt(0)),"");
+                        }
+                        String ninesixone="+961";
+                        phNumber= ninesixone.concat(phNumber);
+                        Log.d("concat",phNumber);
+                        //  phNumber=phNumber.replace("+961","");
                     }
                     SimpleDateFormat formatter = new SimpleDateFormat(
                             "MM/dd/yyyy HH:mm:ss");
@@ -909,10 +923,10 @@ public class createContact extends Fragment {
 
         getActivity().findViewById(id.createprogress)
                 .setVisibility(View.GONE);
-        getActivity().findViewById(id.createfrag)
-                .setEnabled(true);
-        getActivity().findViewById(R.id.createfrag)
-                .setVisibility(View.VISIBLE);
+  //      getActivity().findViewById(id.createfrag)
+   //             .setEnabled(true);
+  //      getActivity().findViewById(R.id.createfrag)
+  //              .setVisibility(View.VISIBLE);
     }
 }
 /*

@@ -78,6 +78,8 @@ public class SaveLogsPage extends AppCompatActivity {
     String duration,time,date;
     DataBaseHelper dataBaseHelper;
     DataBaseHelper2 dataBaseHelper2;
+    DataBaseHelper3 dataBaseHelper3;
+    String datebeforeformat = "";
     TextView logsStatus,logstatus1,contact,phonrNumber,timeDate;
     EditText subject;
     LinearLayout logsCardView;
@@ -89,8 +91,10 @@ public class SaveLogsPage extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.savelog_layout);
+        useremail = "";
         dataBaseHelper = new DataBaseHelper(SaveLogsPage.this);
         dataBaseHelper2 = new DataBaseHelper2(SaveLogsPage.this);
+        dataBaseHelper3 = new DataBaseHelper3(SaveLogsPage.this);
         getAccount();
         if(Window.found){
             contactFound=Window.contactFound;
@@ -170,14 +174,23 @@ public class SaveLogsPage extends AppCompatActivity {
             @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
             public void onClick(View view) {
+                if(subject.getText().toString().isEmpty()){
+                    logstatus1.setVisibility(View.VISIBLE);
+                    logstatus1.setText("please enter a subject");
+
+                    return;
+                }
+                logstatus1.setText("");
+                showProgressBar();
 if(subject.getText().toString().isEmpty()){
     logstatus1.setVisibility(View.VISIBLE);
     logstatus1.setText("please enter a subject");
+    hideProgressBar();
     return;
 }
                 if(CallLogsAdapter.openedfromfrag){
 
-                        //useremail = signin_fragment.Email.replaceAll("\"","").trim();
+                        //usemail = signin_fragment.Email.replaceAll("\"","").trim();
 
                         String sub = subject.getText().toString().trim();
                         desc = ETdescription.getText().toString().trim();
@@ -197,7 +210,7 @@ if(subject.getText().toString().isEmpty()){
                             String subs =  subject.getText().toString().trim();
                             desc = ETdescription.getText().toString().trim();
                             subject.setText("");
-                            ETdescription.setText("");
+                          //  ETdescription.setText("");
                             // contact=findViewById(R.id.contact);
                             String timedate=  timeDate.getText().toString();
                             // contact.getText().toString().trim();
@@ -275,6 +288,17 @@ if(subject.getText().toString().isEmpty()){
         //     }else{
 
         System.out.print("useremail" +useremail);
+        if(useremail.equals("")){
+            if(dataBaseHelper3.getCount()==1){
+                useremail = dataBaseHelper3.getUser().getEmail();
+            }else{
+
+
+            Toast.makeText(SaveLogsPage.this,"you need to sign in before you can save a phone call",Toast.LENGTH_LONG).show();
+            hideProgressBar();
+            finish();
+            return; }
+        }
         userContactid = fetchContactid(useremail);
 //}
         // String userContactid ="cdcfa450-cb0c-ea11-a813-000d3a1b1223";
@@ -388,13 +412,15 @@ if(subject.getText().toString().isEmpty()){
                          dataBaseHelper2.modifySaved(dateFormat1);
                          dataBaseHelper2.modifySubject(dateFormat1,sub);
                             Log.d("sub",sub);
-
+                       subject.setText("");
+                       ETdescription.setText("");
                             logsStatus.setVisibility(View.VISIBLE);
                             // logsStatus.setTextColor(Integer.parseInt("#00FF00"));//green
                             logsStatus.setText("successfully added!");
                             savephonecall.setVisibility(View.GONE);
                             savephonecall.setEnabled(false);
                             cancel.setText("back");
+                            hideProgressBar();
                         }
                     });
                     // Toast.makeText(SaveLogsPage.this,"successfullt saved",Toast.LENGTH_LONG).show();
@@ -496,11 +522,17 @@ if(subject.getText().toString().isEmpty()){
                     phNumber = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.NUMBER));
                     callDate = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.DATE));
                     callDuration = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.DURATION));
-                    if(phNumber.contains("+961")){
-                   phNumber=phNumber.replace("+961","");
+                    if(!phNumber.contains("+961") && !phNumber.contains("+") && !phNumber.equals("111") ){
+                        if(phNumber.trim().startsWith("0")){
+                            phNumber = phNumber.replace(String.valueOf(phNumber.charAt(0)),"");
+                        }
+                        String ninesixone="+961";
+                        phNumber= ninesixone.concat(phNumber);
+                        Log.d("concat",phNumber);
+                        //  phNumber=phNumber.replace("+961","");
                     }
                     callDuration = String.valueOf((Integer.parseInt(String.valueOf(Integer.parseInt(callDuration)/60))));
-
+                    datebeforeformat = callDate;
                     dateFormat= new Date(Long.valueOf(callDate));
                     callDayTimes = String.valueOf(dateFormat);
                     //DateTimeFormatter dt = new DateTimeFormatterBuilder(dateFormat);
@@ -684,5 +716,33 @@ if(subject.getText().toString().isEmpty()){
         Toast toast=Toast.makeText(context,message, Toast.LENGTH_LONG);
         toast.setGravity(Gravity.CENTER,0,0);
         toast.show();
+    }
+
+
+    private void showProgressBar() {
+        SaveLogsPage.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                SaveLogsPage.this.findViewById(R.id.saveLogsProgress)
+                        .setVisibility(View.VISIBLE);
+                SaveLogsPage.this.findViewById(R.id.SaveLogsPage)
+                        .setVisibility(View.GONE);
+
+            }
+        });
+
+    }
+
+    private void hideProgressBar() {
+        SaveLogsPage.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                SaveLogsPage.this.findViewById(R.id.saveLogsProgress)
+                        .setVisibility(View.GONE);
+           //     SaveLogsPage.this.findViewById(R.id.SaveLogsPage)
+          //              .setVisibility(View.VISIBLE);
+            }
+        });
+
     }
 }

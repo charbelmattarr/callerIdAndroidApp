@@ -77,11 +77,13 @@ public ForegroundService(){
                 .setContentText("fetching Contacts")
         // this is important, otherwise the notification will show the way
         // you want i.e. it will show some default notification
-                 .setSmallIcon(R.mipmap.ic_javista_logo_foreground)
+                 .setSmallIcon(R.mipmap.ic_javista_logo)
                  .setPriority(NotificationManager.IMPORTANCE_LOW)
                 .setCategory(Notification.CATEGORY_SERVICE)
                 .build();
-        startForeground(2,notification);
+
+
+     startForeground(2,notification);
 
     }
 }

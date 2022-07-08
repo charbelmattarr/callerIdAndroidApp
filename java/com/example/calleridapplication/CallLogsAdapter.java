@@ -89,7 +89,17 @@ if(calllog.getSubject().equals("")){
         //if(dt1.getContactName(calllog.getCallerid()).equals("null")){
       //      holder.contactname.setText("N/A");
      //   }else{
-        holder.contactname.setText(calllog.getPhoneNbre());
+        String nbre=calllog.getPhoneNbre();
+        if(!calllog.getPhoneNbre().contains("+961") && !calllog.getPhoneNbre().contains("+") && !calllog.getPhoneNbre().equals("111") ){
+            if(calllog.getPhoneNbre().trim().startsWith("0")){
+                nbre = nbre.replace(String.valueOf(nbre.charAt(0)),"");
+            }
+            String ninesixone="+961";
+          nbre= ninesixone.concat(nbre);
+            Log.d("concat",nbre);
+          //  phNumber=phNumber.replace("+961","");
+        }
+        holder.contactname.setText(nbre);
         if(!(dt1.fetchcontact(calllog.getPhoneNbre()).getContact_id().equals("")) || !dt1.getContactName(calllog.getCallerid()).equals("") ){
             dt2.modifyContactid(calllog.getDate(),dt1.fetchcontact(calllog.getPhoneNbre()));
             holder.contactname.setText(dt1.getContactName(calllog.getCallerid()));

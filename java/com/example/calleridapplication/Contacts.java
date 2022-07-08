@@ -30,7 +30,9 @@ public class Contacts extends Fragment {
     private static final String ARG_PARAM2 = "param2";
    ListView contactsListView;
    List contactsList;
+   TextView pleasesignIn;
    DataBaseHelper db;
+    DataBaseHelper3 db3;
    ImageView next;
    TextView contactlistSize;
     // TODO: Rename and change types of parameters
@@ -75,13 +77,19 @@ public class Contacts extends Fragment {
        View v= inflater.inflate(R.layout.fragment_contacts, container, false);
         contactsListView = (ListView) v.findViewById(R.id.contactsListView);
         contactlistSize = (TextView)v.findViewById(R.id.contactlistSize);
+        pleasesignIn = (TextView)v.findViewById(R.id.PleaseSignIN);
         db = new DataBaseHelper(getActivity());
+        db3 = new DataBaseHelper3(getActivity());
         contactsList = db.getEveryone();
         ArrayAdapter adapter = new ContactsAdapter(getActivity(), R.layout.contactadapter_layout,contactsList);
         contactsListView.setAdapter(adapter);
-
+        if(db3.getCount()!=1){
+            pleasesignIn.setVisibility(View.VISIBLE);
+        }
         if(contactsList.size()==1){
             contactlistSize.setText(contactsList.size() + " contact");
+        }else if(contactsList.size()==0){
+            contactlistSize.setText("No contacts yet!");
         }else {
             contactlistSize.setText(contactsList.size() + " contacts");
         }

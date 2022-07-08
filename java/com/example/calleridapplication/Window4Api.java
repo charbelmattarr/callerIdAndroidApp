@@ -356,6 +356,7 @@ public class Window4Api extends AppCompatActivity {
             //    etag = dataobj.getString("@odata.etag");
             email = dataobj.getString("emailaddress1");
             contactFound = new ContactModel(contactid,name,lname,Company,Company,email,mobilephone);
+            if(!email.equals("") || !email.equals("null") || !email.isEmpty()){
             openInApp.setVisibility(View.VISIBLE);
             openInApp.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -363,6 +364,7 @@ public class Window4Api extends AppCompatActivity {
                     openApp(contactFound.getContact_id());
                 }
             });
+            }
             if(Window.contactFound.getContact_id().equals(null)||Window.contactFound.getContact_id().isEmpty()){
                 Log.d("jsonnn","empty");
             }else{

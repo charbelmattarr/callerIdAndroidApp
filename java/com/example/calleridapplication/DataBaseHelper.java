@@ -154,7 +154,16 @@ public class DataBaseHelper extends SQLiteOpenHelper {
       }return 1;
 
     }
+public int deleteDB(){
+    SQLiteDatabase db = this.getWritableDatabase();
 
+    int c = db.delete(CONTACT_TABLE,null,null);
+    if(c == -1){
+        return 0;
+    }return 1;
+
+
+}
 public String getContactId(String email){
 
     String queryString = "SELECT "+CONTACT_ID+" FROM " + CONTACT_TABLE + " WHERE "+ CONTACT_EMAIL + " = \""+email+"\"";

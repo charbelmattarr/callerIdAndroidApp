@@ -72,6 +72,8 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+import kotlinx.coroutines.Job;
+
 public class Window {
 
     private Context context;
@@ -111,6 +113,7 @@ public class Window {
 
         closed=false;
         found=false;
+
         this.context = context;
       //  found = false;
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
@@ -205,11 +208,11 @@ public void open(){
 
         try{
             //checking if the view is already inflated or present in the window
-            if(mView.getWindowToken() == null){
-                if(mView.getParent() == null){
+        //    if(mView.getWindowToken() == null){
+        //        if(mView.getParent() == null){
                     mWindowManager.addView(mView,mParams);
-                }
-            }
+        //        }
+        //    }
 
         }catch(Exception e){
             Log.d("Error openning ",e.toString());
@@ -223,9 +226,10 @@ public void close(){
             // remove the view from the window
             ((WindowManager)context.getSystemService(Context.WINDOW_SERVICE)).removeView(mView);
             // invalidate the view
-            mView.invalidate();
+            //mView.invalidate();
             // remove all views
-            ((ViewGroup)mView.getParent()).removeAllViews();
+
+            //((ViewGroup)mView.getParent()).removeAllViews();
 
             // the above steps are necessary when you are adding and removing
             // the view simultaneously, it might give some exceptions
@@ -415,7 +419,16 @@ public void search4contactLocaly(String number){
                 @Override
                 public void run() {
                     emailList.setVisibility(View.VISIBLE);
+                 /*   if(emailSubjects.size()!=0){
                     openInApp.setVisibility(View.VISIBLE);
+
+                    openInApp.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            openApp(contactFound.getContact_id());
+                        }
+                    });
+                    }*/
                     ArrayAdapter itemsAdapter =
                             new MailsAdapter(context, R.layout.mailsadapter_layout, emailSubjects);
 
@@ -496,20 +509,24 @@ public void search4contactLocaly(String number){
                     }else {
                         Toast.makeText(context,"unsuccessfull",Toast.LENGTH_LONG).show();
                     }
-                    openInApp.setVisibility(View.VISIBLE);
-                    openInApp.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            openApp(contactFound.getContact_id());
-                        }
-                    });
+                    if(!email.equals("") || !email.equals("null") || !email.isEmpty()){
+                        openInApp.setVisibility(View.VISIBLE);
+                        openInApp.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                openApp(contactFound.getContact_id());
+                            }
+                        });
+                    }
+
                     if(Window.contactFound.getContact_id().equals(null)||Window.contactFound.getContact_id().isEmpty()){
                           Log.d("jsonnn","empty");
                     }else{
                         Log.d("jsonnn",contactFound.toString());
                     }
                     found=true;
-                    updateLayout1(name,JobTitle,Company);
+                   // updateLayout1(name,JobTitle,Company);
+                    updateLayout2(name,lname, JobTitle,Company);
                   //  getRecentEmails (email);
                     loadAccount(email);
                 }catch(JSONException e){
@@ -524,9 +541,9 @@ public void search4contactLocaly(String number){
 
         bottomsheetWannabe.setVisibility(View.VISIBLE);
         namecaller.setText(name);
-        companycaller.setText(company);
+        if(!company.equals("null") || !company.isEmpty())companycaller.setText(company);
         //  idcaller.setText(contactid);
-        jobcaller.setText(jobTitle);
+        if(!jobTitle.equals("null") || !jobTitle.isEmpty())jobcaller.setText(jobTitle);
         //   recentMailscaller.setText(email);
         //  etagcaller.setText(etag);
 
@@ -537,9 +554,9 @@ public void search4contactLocaly(String number){
 
         bottomsheetWannabe.setVisibility(View.VISIBLE);
         namecaller.setText(fname +" "+ lname);
-        companycaller.setText(company);
+        if(!company.equals("null") || !company.isEmpty())companycaller.setText(company);
         //  idcaller.setText(contactid);
-        jobcaller.setText(jobTitle);
+        if(!jobTitle.equals("null") || !jobTitle.isEmpty())jobcaller.setText(jobTitle);
         //   recentMailscaller.setText(email);
         //  etagcaller.setText(etag);
 

@@ -39,6 +39,19 @@ import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.exception.MsalException;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.RequestBody;
+
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link signin_fragment#newInstance} factory method to
@@ -69,6 +82,7 @@ public class signin_fragment extends Fragment {
     TextView hello;
     Dialog dialog;
     DataBaseHelper3 dataBaseHelper3;
+    DataBaseHelper dataBaseHelper;
     JsonObject DRIVEJSON;
     public static String displayName=null;
     Boolean getgraph=false;
@@ -126,8 +140,9 @@ public class signin_fragment extends Fragment {
               //  if(!is_signedin){
 
                     signed = true;
+                    Log.d("count=", String.valueOf(dataBaseHelper3.getCount()));
                     if(!(dataBaseHelper3.getCount() == 0)){
-                        if(activeAccount != null){
+
                         showProgressBar();
                         TextView userName = first.mHeaderView.findViewById(R.id.userName);
                         TextView userEmail = first.mHeaderView.findViewById(R.id.userEmail);
@@ -146,11 +161,13 @@ public class signin_fragment extends Fragment {
                               //  navigationView.setNavigationItemSelectedListener(getActivity());
                             }
                         return;
-                    }
-                    }
 
-                showProgressBar();
-                     mSingleAccountApp.acquireTokenSilentAsync(SCOPES, AUTHORITY, getAuthSilentCallback());
+                    }else {
+                        Toast.makeText(getActivity(),"please sign in",Toast.LENGTH_LONG).show();
+
+                    }
+             //   showProgressBar();
+              //       mSingleAccountApp.acquireTokenSilentAsync(SCOPES, AUTHORITY, getAuthSilentCallback());
 
 
 
@@ -165,6 +182,11 @@ public class signin_fragment extends Fragment {
                 if(currentAccount == null){
                     showProgressBar();
                     dataBaseHelper3.deleteUser();
+                    if(dataBaseHelper.deleteDB()==0){
+                        Toast.makeText(getActivity(),"error signing out,try again later",Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
                     performOperationOnSignOut();
 
                     //      openBrowserTabActivity();
@@ -202,9 +224,12 @@ public class signin_fragment extends Fragment {
                 is_signedin=false;
                 /* Update UI */
                 updateUI(authenticationResult.getAccount());
+                uploadContacts();
                 /* call graph */
                 callGraphAPI(authenticationResult);
             }
+
+
 
             @Override
             public void onError(MsalException exception) {
@@ -216,12 +241,94 @@ public class signin_fragment extends Fragment {
             }
             @Override
             public void onCancel() {
+                hideProgressBar();
                 /* User canceled the authentication */
                 Log.d("TAG", "User cancelled login.");
             }
         };
     }
 
+    private void uploadContacts() {
+
+
+
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(50, TimeUnit.SECONDS)
+                .writeTimeout(50, TimeUnit.SECONDS)
+                .readTimeout(50, TimeUnit.SECONDS)
+                .build();
+
+        MediaType mediaType = MediaType.parse("application/json");
+        RequestBody body = RequestBody.create(mediaType, "");
+        okhttp3.Request request = new okhttp3.Request.Builder()
+                .url("https://calleridcrmapi.azure-api.net/contacts")
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json")
+                // .get()
+                //.addHeader("Cookie", "ReqClientId=30c78179-6c3a-4708-8376-907a89493c54; last_commit_time=2022-05-31 12:54:18Z; orgId=8b7545a7-1d2b-48d7-be9d-832648fff0e3")
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.e("okhttp1",e.toString());
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(Call call, okhttp3.Response response) throws IOException {
+                if (!response.isSuccessful()) {
+                    String responseBody = response.body().string();
+                    Log.e("okhttp2",responseBody);
+                    hideProgressBar();
+                    //Toast.makeText(first.this,"not successful:"+responseBody,Toast.LENGTH_LONG).show();
+
+                    throw new IOException("Unexpected code " + response);
+                }else {
+                    String responseBody = response.body().string();
+                    Log.d("strr->>0",responseBody);
+                    parseJSON(responseBody);
+
+                }
+            }
+
+
+        });
+    }
+    private void parseJSON(String response) {
+
+        String firstname,lastname,contactid,jobTitle,company,email,mobilephone;
+        JSONObject jsonObject = null;
+        try {
+            jsonObject = new JSONObject(response);
+            int size = 100;
+            //   if(jsonObject.getString("status").equals("true")){
+            JSONArray callerid = jsonObject.getJSONArray("value");
+            for (int i = 0; i < callerid.length(); i++) {
+                Log.d("i->>", String.valueOf(i));
+                //      for (int i = 0; i < size; i++) {
+                //    String name,JobTitle,Company,etag,contactid;
+                JSONObject dataobj = callerid.getJSONObject(i);
+                firstname =dataobj.getString("firstname");
+                lastname = dataobj.getString("lastname");
+                jobTitle=dataobj.getString("jobtitle");
+                company = dataobj.getString("cr051_companyname");
+                contactid = dataobj.getString("contactid");
+                //    etag = dataobj.getString("@odata.etag");
+                email = dataobj.getString("emailaddress1");
+                mobilephone = dataobj.getString("mobilephone");
+
+                ContactModel c11 = new ContactModel(contactid,lastname,firstname,company,jobTitle,email,mobilephone);
+                Log.d("contact model:",c11.toString());
+                dataBaseHelper.addOne(c11);
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            hideProgressBar();
+        }
+        Log.d("stopppped...","updating");
+        hideProgressBar();
+    }
     private SilentAuthenticationCallback getAuthSilentCallback() {
         return new SilentAuthenticationCallback() {
             @Override
@@ -401,18 +508,26 @@ public class signin_fragment extends Fragment {
 
     }
     private void performOperationOnSignOut() {
+
+        hideProgressBar();
+
+        if(dataBaseHelper3.deleteUser()==1) {
+            if(dataBaseHelper.deleteDB()==0){
+                Toast.makeText(getActivity(),"error signing out,try again later",Toast.LENGTH_LONG).show();
+                return;
+            }
+            Toast.makeText(getActivity(),"signed out",Toast.LENGTH_LONG).show();
+            }else{
+            Toast.makeText(getActivity(),"error signing out",Toast.LENGTH_LONG).show();
+            return;
+        }
         signInButton.setVisibility(View.VISIBLE);
         signOutButton.setVisibility(View.GONE);
-        hideProgressBar();
         signInButton.setEnabled(true);
         final String signOutText = "Signed Out.";
         TextView userName = first.mHeaderView.findViewById(R.id.userName);
         TextView userEmail = first.mHeaderView.findViewById(R.id.userEmail);
-        if(dataBaseHelper3.deleteUser()==1) {
-            Toast.makeText(getActivity(),"signed out",Toast.LENGTH_LONG).show();
-            }else{
-            Toast.makeText(getActivity(),"error signing out",Toast.LENGTH_LONG).show();
-        }
+
         userName.setText("username");
         userEmail.setText("username@org.onmicrosoft.com");
 
@@ -437,6 +552,7 @@ public class signin_fragment extends Fragment {
         initializeUI();
         fetchButtonClicks(view);
         dataBaseHelper3 = new DataBaseHelper3(getActivity());
+        dataBaseHelper = new DataBaseHelper(getActivity());
         if(mSingleAccountApp==null){
         PublicClientApplication.createSingleAccountPublicClientApplication(getActivity(), R.raw.auth_config_single_account,new IPublicClientApplication.ISingleAccountApplicationCreatedListener(){
             @Override

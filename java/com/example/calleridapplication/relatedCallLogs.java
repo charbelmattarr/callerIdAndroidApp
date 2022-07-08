@@ -190,8 +190,11 @@ ArrayAdapter adapter;
         final List<Option> options = new LinkedList<>();
         Log.d("gettingemails","...");
         // Start and end times adjusted to user's time zone
-        if(contact_email.isEmpty() ||contact_email.equals("null")){
+        if(contact_email.isEmpty() ||contact_email.equals("null") || contact_email.equals("")){
             Toast.makeText(relatedCallLogs.this,"you dont know the email of this person",Toast.LENGTH_LONG).show();
+            listview2.setVisibility(View.GONE);
+
+            return;
         }
         options.add(new QueryOption("filter",
                 "(from/emailAddress/address) eq '"+contact_email+"'"));
@@ -235,7 +238,7 @@ ArrayAdapter adapter;
             Emails = new ArrayList<>();
             emailsss = new EmailModel("no emails","");
             Log.d("emails","no emails");
-            emailStatus.setText("You have no emails with this person.");
+            emailStatus.setText("You have no emails with "+contact.getContact_fname()+".");
             Emails.add(emailsss);
             return;
         }
@@ -301,19 +304,7 @@ relatedCallLogs.this.runOnUiThread(new Runnable() {
 
     }
 
-    private void showProgressBar() {
-      relatedCallLogs.this.runOnUiThread(new Runnable() {
-          @Override
-          public void run() {
-              relatedCallLogs.this.findViewById(R.id.progressBar123)
-                      .setVisibility(View.VISIBLE);
-              relatedCallLogs.this.findViewById(R.id.emailLayout)
-                      .setVisibility(View.GONE);
 
-          }
-      });
-
-    }
     private void loadAccount(String email){
         if(mSingleAccountApp == null){
             return;
@@ -405,7 +396,19 @@ Toast.makeText(relatedCallLogs.this,"account changed, please sign in again!",Toa
                     }
                 });
     }
+    private void showProgressBar() {
+        relatedCallLogs.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                relatedCallLogs.this.findViewById(R.id.progressBar123)
+                        .setVisibility(View.VISIBLE);
+                relatedCallLogs.this.findViewById(R.id.emailLayout)
+                        .setVisibility(View.GONE);
 
+            }
+        });
+
+    }
 
     private void hideProgressBar() {
       relatedCallLogs.this.runOnUiThread(new Runnable() {

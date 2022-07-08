@@ -75,6 +75,7 @@ public class createContact2 extends Fragment {
     ProgressBar progressbar;
     DataBaseHelper dataBaseHelper;
     DataBaseHelper2 dataBaseHelper2;
+    DataBaseHelper3 dataBaseHelper3;
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
@@ -140,6 +141,7 @@ public class createContact2 extends Fragment {
         ETphonenumber.setEnabled(true);
         dataBaseHelper = new DataBaseHelper(getActivity().getApplicationContext());
         dataBaseHelper2 = new DataBaseHelper2(getActivity().getApplicationContext());
+        dataBaseHelper3 = new DataBaseHelper3(getActivity().getApplicationContext());
         gotoSaveLogs.setVisibility(View.GONE);
         cancel.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -164,7 +166,10 @@ public class createContact2 extends Fragment {
             @Override
             public void onClick(View v) {
 
-
+         if(dataBaseHelper3.getCount()!=1){
+             Toast.makeText(getActivity(),"you need to sign in to perform this action.",Toast.LENGTH_LONG).show();
+               return;
+          }
                 firstname=ETfirstname.getText().toString().trim();
                 lastname=ETlastname.getText().toString().trim();
                 company=ETcompany.getText().toString().trim();
@@ -186,6 +191,7 @@ public class createContact2 extends Fragment {
                     return;
                 }
                 showProgressBar();
+                createStatus.setText("");
                 //this one is using volley
                 //   createContactinCRM1(firstname,lastname,company,job,email,mobilephone);
                 getActivity().runOnUiThread(new Runnable() {
@@ -380,6 +386,7 @@ public class createContact2 extends Fragment {
                                     ETphonenumber.setText("");
                                     createStatus.setTextColor(createContact2.this.getResources().getColor(R.color.green));
                                     createStatus.setText("added success!");
+                                    btnCreateContact.setText("saved!");
                                     hideProgressBar();
                                     addthisContactToDB(mobilephone);
 
@@ -756,8 +763,8 @@ public class createContact2 extends Fragment {
 
         getActivity().findViewById(R.id.progressBar12)
                 .setVisibility(View.GONE);
-            getActivity().findViewById(id.framCreateContact2)
-                 .setVisibility(View.VISIBLE);
+    //        getActivity().findViewById(id.framCreateContact2)
+    //            .setVisibility(View.VISIBLE);
     }
 
 }
