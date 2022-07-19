@@ -55,6 +55,7 @@ DataBaseHelper2 dt2;
 DataBaseHelper dt1;
 TextView email;
 ContactModel contact;
+String token;
 TextView emailStatus,phonecallstatus;
 ImageView back;
 ListView listview2;
@@ -97,7 +98,50 @@ ArrayAdapter adapter;
                 relatedCallLogs.this.finish();
             }
         });
-        if(bundle.getString("id")!= null)
+        if(!bundle.getString("token").equals("") && !bundle.getString("id").equals("")){
+            id =bundle.getString("id").toString().trim();
+            token =bundle.getString("token").toString().trim();
+            Log.d("idinpage",id);
+            name = dt1.getContactName(id);
+            contact = dt1.fetchAllInfo(id);
+            Log.d("opening",name);
+            ctctName.setText(name );
+            list = dt2.fetchCalllogsByContactid(id);
+            email.setText(contact.getContact_email());
+            if(list.size()==0){
+                //CallLogs(String calllogid,String duration, String direction, String date, String phoneNbre, String saved, String callername)
+                phonecallstatus.setVisibility(View.VISIBLE);
+            }else{
+                email.setText(contact.getContact_email());
+                adapter = new CallLogsAdapter(relatedCallLogs.this,R.layout.calllogsadapter_layout,list);
+
+                listview.setVisibility(View.VISIBLE);
+                listview.setAdapter(adapter);
+                Helper.getListViewSize(listview);
+            }
+            PublicClientApplication.createSingleAccountPublicClientApplication(relatedCallLogs.this, R.raw.auth_config_single_account,new IPublicClientApplication.ISingleAccountApplicationCreatedListener(){
+                @Override
+                public void onCreated(ISingleAccountPublicClientApplication application){
+
+                    if(relatedCallLogs.this == null) Log.e("EMT","EMT");
+                    mSingleAccountApp = application;
+
+                    showProgressBar();
+                    listview2.setVisibility(View.VISIBLE);
+                    getRecentWithToken(contact.getContact_email(),token);
+
+                }
+                @Override
+                public void onError(MsalException exception){
+                    hideProgressBar();
+                    emailStatus.setText("Error Getting your emails with "+contact.getContact_fname()+"! Check your internet connection and try again later!");
+                    Toast.makeText(relatedCallLogs.this,"error getting emails... ,"+exception.toString(),Toast.LENGTH_LONG).show();
+                    Log.d("exception",exception.toString());
+                }
+            });
+
+        }
+        if(!bundle.getString("id").equals(""))
         {
             id =bundle.getString("id").toString().trim();
             Log.d("idinpage",id);
@@ -106,6 +150,7 @@ ArrayAdapter adapter;
             Log.d("opening",name);
             ctctName.setText(name );
             list = dt2.fetchCalllogsByContactid(id);
+            email.setText(contact.getContact_email());
             if(list.size()==0){
                 //CallLogs(String calllogid,String duration, String direction, String date, String phoneNbre, String saved, String callername)
                 phonecallstatus.setVisibility(View.VISIBLE);
@@ -128,18 +173,31 @@ ArrayAdapter adapter;
                            Log.d("ok","signed in should be fetching emails");
                            emailStatus.setText("");
                            //          notAvailable.setVisibility(View.GONE);
-                           showProgressBar();
-                           Log.d("ok","fetching emails for this person "+contact.getContact_email());
+
+                           Log.d("ok","fetching emails for  "+contact.getContact_email());
+            if(contact.getContact_email().isEmpty() ||contact.getContact_email().equals("null") || contact.getContact_email().equals("")){
+                Toast.makeText(relatedCallLogs.this,"you dont know the email of this person",Toast.LENGTH_LONG).show();
+                listview2.setVisibility(View.GONE);
+                emailStatus.setText("you don't know the email of "+contact.getContact_fname()+"!");
+                return;
+            }else{
                            PublicClientApplication.createSingleAccountPublicClientApplication(relatedCallLogs.this, R.raw.auth_config_single_account,new IPublicClientApplication.ISingleAccountApplicationCreatedListener(){
                                @Override
                                public void onCreated(ISingleAccountPublicClientApplication application){
 
                                    if(relatedCallLogs.this == null) Log.e("EMT","EMT");
                                    mSingleAccountApp = application;
+
+                                       showProgressBar();
+                                  listview2.setVisibility(View.VISIBLE);
                                    loadAccount(contact.getContact_email());
+
                                }
                                @Override
                                public void onError(MsalException exception){
+                                   hideProgressBar();
+                                   emailStatus.setText("Error Getting your emails with "+contact.getContact_fname()+"! Check your internet connection and try again later!");
+                                   Toast.makeText(relatedCallLogs.this,"error getting emails... ,"+exception.toString(),Toast.LENGTH_LONG).show();
                                    Log.d("exception",exception.toString());
                                }
                            });
@@ -150,11 +208,66 @@ ArrayAdapter adapter;
                }
 
 
+        }
+
+
+
+
+    }
+
+    private void getRecentWithToken(String contact_email, String token) {
+
+        callGraphAPI2(token,contact_email);
 
 
 
 
 
+
+    }
+    private void callGraphAPI2(String accessTokenn,String emailsss) {
+
+
+        //  token=authenticationResult.getAccessToken();
+        //  storage.SaveAuthenticationState(authenticationResult.getAccessToken());
+        final List<Option> options = new LinkedList<>();
+        graphClient =
+                GraphServiceClient
+                        .builder()
+                        .authenticationProvider(new IAuthenticationProvider() {
+                            @Override
+                            public void authenticateRequest(IHttpRequest request) {
+                                Log.d("TAG", "Authenticating request," + request.getRequestUrl());
+                                request.addHeader("Authorization", "Bearer " + accessTokenn);
+                                Log.d("token is", accessTokenn);
+                            }
+                        })
+                        .buildClient();
+
+        options.add(new QueryOption("filter",
+                "sentDateTime ge 2022-01-01T00:00:00Z and (from/emailAddress/address) eq '"+emailsss+"'"));
+        options.add(new QueryOption("$orderby",
+                "sentDateTime DESC"));
+        graphClient
+                .me()
+                .messages()
+                .buildRequest(options)
+                .top(2)
+                .get(new ICallback<IMessageCollectionPage>() {
+
+                    @Override
+                    public void success(IMessageCollectionPage iMessageCollectionPage) {
+                        Log.d("emails::",iMessageCollectionPage.getRawObject().toString());
+
+                        displayEmail(iMessageCollectionPage.getRawObject());
+
+                    }
+
+                    @Override
+                    public void failure(ClientException ex) {
+                        Log.d("errorEmail",ex.getMessage().toString());
+                    }
+                });
     }
     public void getTokenForGraph(String email){
 
@@ -333,7 +446,10 @@ Toast.makeText(relatedCallLogs.this,"account changed, please sign in again!",Toa
             }
             @Override
             public void onError(@NonNull MsalException exception){
-               Log.d("exception",exception.toString());
+                hideProgressBar();
+                Toast.makeText(relatedCallLogs.this,"error creating contact ,"+exception.toString(),Toast.LENGTH_LONG).show();
+
+                Log.d("exception",exception.toString());
             }
         });
     }
@@ -346,7 +462,11 @@ Toast.makeText(relatedCallLogs.this,"account changed, please sign in again!",Toa
                 callGraphAPI(authenticationResult,email);
             }
             @Override
+
             public void onError(MsalException exception) {
+                hideProgressBar();
+                Toast.makeText(relatedCallLogs.this,"error creating contact ,"+exception.toString(),Toast.LENGTH_LONG).show();
+
                 Log.d("TAG", "Authentication failed: " + exception.toString());
                 Log.d("emailerror",exception.toString());
             }

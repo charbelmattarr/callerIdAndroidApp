@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.provider.CallLog;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -28,6 +29,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
 import com.example.CallerIdApplication.R;
+import com.google.android.material.navigation.NavigationView;
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
@@ -127,9 +129,9 @@ public class SaveLogsPage extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                SaveLogsPage.this.finish();
+               // SaveLogsPage.this.finish();
                 Intent i = new Intent(SaveLogsPage.this,first.class);
-
+                SaveLogsPage.this.startActivity(i);
             }
         });
         //subject.setTextColor(Integer.parseInt("0x00FF00"));//green
@@ -274,11 +276,105 @@ if(subject.getText().toString().isEmpty()){
 
         //  signin_fragment.mSingleAccountApp.signIn(SaveLogsPage.this, null, SCOPES, getAuthInteractiveCallback());
     }
+    private void loadAccount(){
+        if(mSingleAccountApp == null){
+            return;
+        }
+        mSingleAccountApp.getCurrentAccountAsync(new ISingleAccountPublicClientApplication.CurrentAccountCallback(){
+            @Override
+            public void onAccountLoaded(@Nullable IAccount activeAccount){
+                useremail = activeAccount.getUsername().trim().toString();
+
+            }
+
+            @Override
+            public void onAccountChanged(@Nullable IAccount priorAccount,@Nullable IAccount currentAccount){
+                if(currentAccount == null){
+                    showProgressBar();
+                    dataBaseHelper3.deleteUser();
+                    if(dataBaseHelper.deleteDB()==0){
+                        hideProgressBar();
+                    Toast.makeText(SaveLogsPage.this,"you need to sign in before you perform this action.",Toast.LENGTH_LONG).show();
+               performOnSignOutAction();
+                  return;
+                    }
+
+
+
+                    //      openBrowserTabActivity();
+                }
+            }
+            @Override
+            public void onError(@NonNull MsalException exception){
+                hideProgressBar();
+                Toast.makeText(SaveLogsPage.this,"Try again later!",Toast.LENGTH_LONG).show();
+
+               // displayError(exception);
+                return;
+            }
+        });
+    }
+
+    private void performOnSignOutAction() {
+SaveLogsPage.this.runOnUiThread(new Runnable() {
+    @Override
+    public void run() {
+        hideProgressBar();
+        mSingleAccountApp.signOut(new ISingleAccountPublicClientApplication.SignOutCallback() {
+            @Override
+            public void onSignOut() {
+                if (first.navigationView != null) {
+                    Log.d("tTAG","should change the title");
+                    Menu menu = first.navigationView.getMenu();
+                    menu.findItem(R.id.nav_signin).setTitle("Sign in");
+                    first.navigationView.setEnabled(true);
+                    first.toolbar.setEnabled(true);
+
+                    //menu.findItem(R.id.nav_pkg_manage).setVisible(false);//In case you want to remove menu item
+                    //  navigationView.setNavigationItemSelectedListener(getActivity());
+                }
+
+            }
+            @Override
+            public void onError(@NonNull MsalException exception){
+                hideProgressBar();
+
+                displayError(exception);
+            }
+        });
+
+
+        if(dataBaseHelper3.deleteUser()==1) {
+            if(dataBaseHelper.deleteDB()==0){
+                Toast.makeText(SaveLogsPage.this,"error signing out,try again later",Toast.LENGTH_LONG).show();
+                return;
+            }
+            Toast.makeText(SaveLogsPage.this,"signed out",Toast.LENGTH_LONG).show();
+        }else{
+            Toast.makeText(SaveLogsPage.this,"error signing out",Toast.LENGTH_LONG).show();
+            return;
+        }
+
+
+    }
+});
+
+    }
 
     private void saveLogs(String sub,String desc, int duration, String phNumber, String dateFormat1,Boolean direction) {
         boolean result = false;
         logsCardView.setEnabled(false);
         String userContactid = null;
+        Toast.makeText(SaveLogsPage.this,"direction"+direction,Toast.LENGTH_LONG).show();
+        if(!phNumber.contains("+961") && !phNumber.contains("+") && !phNumber.equals("111") ){
+            if(phNumber.trim().startsWith("0")){
+                phNumber = phNumber.replace(String.valueOf(phNumber.charAt(0)),"");
+            }
+            String ninesixone="+961";
+            phNumber= ninesixone.concat(phNumber);
+            Log.d("concat",phNumber);
+            //  phNumber=phNumber.replace("+961","");
+        }
 //if(createContact.openFromCreate ){
         //   createContact.openFromCreate = false;
         //    userContactid = createContact.contactid;
@@ -291,13 +387,54 @@ if(subject.getText().toString().isEmpty()){
         if(useremail.equals("")){
             if(dataBaseHelper3.getCount()==1){
                 useremail = dataBaseHelper3.getUser().getEmail();
+
+
+
+
+                if(mSingleAccountApp==null){
+                    PublicClientApplication.createSingleAccountPublicClientApplication(SaveLogsPage.this, R.raw.auth_config_single_account,new IPublicClientApplication.ISingleAccountApplicationCreatedListener(){
+                        @Override
+                        public void onCreated(ISingleAccountPublicClientApplication application){
+
+                            if(SaveLogsPage.this == null) Log.e("EMT","EMT");
+
+                            mSingleAccountApp = application;
+
+                            if(mSingleAccountApp!=null){
+                                Log.d("Tag","entereed againnn");
+                                loadAccount();
+
+
+                            }
+
+                        }
+                        @Override
+                        public void onError(MsalException exception){
+                            hideProgressBar();
+                            Toast.makeText(SaveLogsPage.this,"error saving phone call , try again later!",Toast.LENGTH_LONG).show();
+                            Toast.makeText(SaveLogsPage.this,"you need to sign in before you can save a phone call",Toast.LENGTH_LONG).show();
+
+                            finish();
+
+                         //   Log.d("TAG",exception.toString());
+                            displayError(exception);
+                            return;
+                        }
+                    });
+                }
+
+
+
+
+
             }else{
 
 
             Toast.makeText(SaveLogsPage.this,"you need to sign in before you can save a phone call",Toast.LENGTH_LONG).show();
             hideProgressBar();
             finish();
-            return; }
+            return;
+            }
         }
         userContactid = fetchContactid(useremail);
 //}
@@ -308,7 +445,8 @@ if(subject.getText().toString().isEmpty()){
                 .build();
         MediaType mediaType = MediaType.parse("application/json");
         RequestBody body=null;
-
+Log.d("contact_idBill",userContactid);
+Log.d("contact_idUSER",clientContactid);
         if(direction)
         {
             //outgoing
@@ -335,7 +473,7 @@ if(subject.getText().toString().isEmpty()){
             body = RequestBody.create(mediaType, "{    \"subject\": \""+sub+"\",\r\n  " +
                     "  \"phonenumber\": \""+phNumber+"\",\r\n   " +
                     " \"description\": \""+desc+"\",\r\n " +
-                    "  \"directioncode\": "+directionBoolean+", //Direction : 0-->False/Incomming, 1-->True/Outgoing,\r\n  " +
+                    "  \"directioncode\": "+direction+", //Direction : 0-->False/Incomming, 1-->True/Outgoing,\r\n  " +
                     "  \"scheduledstart\":\""+dateFormat1+"\",\r\n    \"actualdurationminutes\":\"50\",\r\n  " +
                     "    \"actualdurationminutes\":\""+duration+"\",\n" +
                     " \"regardingobjectid_contact@odata.bind\": \"/contacts("+userContactid+")\", " +
@@ -349,7 +487,7 @@ if(subject.getText().toString().isEmpty()){
                     "     \"participationtypemask\": 2 // To\r\n        }\r\n    ]\r\n    }");
 
         }
-/*body =RequestBody.create(mediaType,"{    \"subject\": \" "+desc+"\",\n" +
+/*body =RequestBody.crfate(mediaType,"{    \"subject\": \" "+desc+"\",\n" +
         "    \"phonenumber\": \" "+phNumber+"\",\n" +
         "    \"description\": \"My description\",\n" +
         "    \"directioncode\": "+direction+", //Direction : 0-->False/Incomming, 1-->True/Outgoing,\n" +
@@ -376,8 +514,15 @@ if(subject.getText().toString().isEmpty()){
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                Log.e("okhttp1",e.toString());
-                e.printStackTrace();
+              SaveLogsPage.this.runOnUiThread(new Runnable() {
+                  @Override
+                  public void run() {
+                      hideProgressBar();
+                      Toast.makeText(SaveLogsPage.this,"error saving this phone call, Try again later!",Toast.LENGTH_LONG).show();
+                      Log.e("okhttp1",e.toString());
+                      e.printStackTrace();
+                  }
+              });
             }
 
             @Override
@@ -386,9 +531,18 @@ if(subject.getText().toString().isEmpty()){
                     SaveLogsPage.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Log.e("okhttp2",response.toString());
-                            logsStatus.setTextColor(0xFFFF0000);
-                            logsStatus.setText("unsuccessfull!");
+                            SaveLogsPage.this.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    hideProgressBar();
+                                    Toast.makeText(SaveLogsPage.this,"error saving this phone call, Try again later!",Toast.LENGTH_LONG).show();
+
+                                    Log.e("okhttp2",response.toString());
+                                    logsStatus.setTextColor(0xFFFF0000);
+                                    logsStatus.setText("unsuccessfull!");
+                                }
+                            });
+
                         }
                     });
 
@@ -403,24 +557,30 @@ if(subject.getText().toString().isEmpty()){
                     SaveLogsPage.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Log.d("dateFormatSave",dateFormat1);
+                            SaveLogsPage.this.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Log.d("dateFormatSave",dateFormat1);
 
-                            dataBaseHelper2 = new DataBaseHelper2(SaveLogsPage.this);
-                            //  cl2 = dataBaseHelper2.fetchByDate(dateFormat1);
-                            //    Log.d("fetch by date",cl2.toString());
-                            Log.d("sub",sub);
-                         dataBaseHelper2.modifySaved(dateFormat1);
-                         dataBaseHelper2.modifySubject(dateFormat1,sub);
-                            Log.d("sub",sub);
-                       subject.setText("");
-                       ETdescription.setText("");
-                            logsStatus.setVisibility(View.VISIBLE);
-                            // logsStatus.setTextColor(Integer.parseInt("#00FF00"));//green
-                            logsStatus.setText("successfully added!");
-                            savephonecall.setVisibility(View.GONE);
-                            savephonecall.setEnabled(false);
-                            cancel.setText("back");
-                            hideProgressBar();
+                                    dataBaseHelper2 = new DataBaseHelper2(SaveLogsPage.this);
+                                    //  cl2 = dataBaseHelper2.fetchByDate(dateFormat1);
+                                    //    Log.d("fetch by date",cl2.toString());
+                                    Log.d("sub",sub);
+                                    dataBaseHelper2.modifySaved(dateFormat1);
+                                    dataBaseHelper2.modifySubject(dateFormat1,sub);
+                                    Log.d("sub",sub);
+                                    subject.setText("");
+                                    ETdescription.setText("");
+                                    logsStatus.setVisibility(View.VISIBLE);
+                                    // logsStatus.setTextColor(Integer.parseInt("#00FF00"));//green
+                                    logsStatus.setText("successfully added!");
+                                    savephonecall.setVisibility(View.GONE);
+                                    savephonecall.setEnabled(false);
+                                    cancel.setText("back");
+                                    hideProgressBar();
+                                }
+                            });
+
                         }
                     });
                     // Toast.makeText(SaveLogsPage.this,"successfullt saved",Toast.LENGTH_LONG).show();
@@ -447,6 +607,8 @@ if(subject.getText().toString().isEmpty()){
                     }
                     @Override
                     public void onError(MsalException exception){
+                        hideProgressBar();
+                        Toast.makeText(SaveLogsPage.this,"error creating contact ,"+exception.toString(),Toast.LENGTH_LONG).show();
                         displayError(exception);
                     }
                 });
@@ -459,6 +621,7 @@ if(subject.getText().toString().isEmpty()){
         SaveLogsPage.this.runOnUiThread(new Runnable() {
             @Override
             public void run() {
+
                 durationTxtView.setText("error");
                 ETdescription.setText("error");
                 logsCardView.setVisibility(View.GONE);
@@ -469,7 +632,7 @@ if(subject.getText().toString().isEmpty()){
 
     }
 
-    private void loadAccount() {
+   /* private void loadAccount() {
 
         if(mSingleAccountApp == null){
             return ;
@@ -496,12 +659,16 @@ if(subject.getText().toString().isEmpty()){
             }
             @Override
             public void onError(@NonNull MsalException exception){
+                hideProgressBar();
+                Toast.makeText(SaveLogsPage.this,"error creating contact ,"+exception.toString(),Toast.LENGTH_LONG).show();
                 displayError(exception);
 
             }
         });
     }
 
+
+    */
 
 
 
@@ -544,8 +711,8 @@ if(subject.getText().toString().isEmpty()){
                             .parseLong(callDate)));
                     String stringType;
                     try{
-                        stringType = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.TYPE));
-                        Toast.makeText(SaveLogsPage.this,stringType,Toast.LENGTH_LONG).show();
+                      stringType = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.TYPE));
+                        //       Toast.makeText(SaveLogsPage.this,stringType,Toast.LENGTH_LONG).show();
                         switch (stringType) {
                             case "2":
                                 direction = "OUTGOING";
@@ -556,6 +723,7 @@ if(subject.getText().toString().isEmpty()){
                                 break;
                             case "1":
                                 direction = "INCOMING";
+                                directionBoolean = false;
                                 System.out.println("durection boolean = false ->"+directionBoolean);
                                 Log.d(String.valueOf(SaveLogsPage.this),"durection boolean = false ->"+directionBoolean);
                                 Log.d(String.valueOf(SaveLogsPage.this),"durection value = INCOMING ->"+direction);
@@ -701,12 +869,16 @@ if(subject.getText().toString().isEmpty()){
             @Override
             public void onError(MsalException exception) {
                 /* Failed to acquireToken */
+                hideProgressBar();
+                Toast.makeText(SaveLogsPage.this,"error creating contact ,"+exception.toString(),Toast.LENGTH_LONG).show();
                 Log.d("TAG", "Authentication failed: " + exception.toString());
 
             }
             @Override
             public void onCancel() {
                 /* User canceled the authentication */
+                hideProgressBar();
+                Toast.makeText(SaveLogsPage.this,"Canceled!",Toast.LENGTH_LONG).show();
                 Log.d("TAG", "User cancelled login.");
             }
         };

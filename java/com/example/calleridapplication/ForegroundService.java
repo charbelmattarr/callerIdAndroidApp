@@ -19,7 +19,7 @@ public class ForegroundService extends Service {
 public ForegroundService(){
 
 }
-
+public static  Notification notification;
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -72,7 +72,7 @@ public ForegroundService(){
 
 
         NotificationCompat.Builder notificaBuilder = new NotificationCompat.Builder(ForegroundService.this,NOTIFICATION_CHANNEL_ID);
-        Notification notification = notificaBuilder.setOngoing(true)
+         notification = notificaBuilder.setOngoing(true)
                 .setContentTitle("Caller id")
                 .setContentText("fetching Contacts")
         // this is important, otherwise the notification will show the way

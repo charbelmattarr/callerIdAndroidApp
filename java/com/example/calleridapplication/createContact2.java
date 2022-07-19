@@ -9,11 +9,14 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import android.provider.CallLog;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -29,6 +32,11 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.CallerIdApplication.R;
+import com.microsoft.identity.client.IAccount;
+import com.microsoft.identity.client.IPublicClientApplication;
+import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
+import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.client.exception.MsalException;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -62,6 +70,7 @@ public class createContact2 extends Fragment {
     String URLline;
     CallLogs cl2=null;
     String ids;
+    public static ISingleAccountPublicClientApplication mSingleAccountApp;
     Button cancel;
     static Boolean openFromCreate = false;
     public static ContactModel contactfound = null;
@@ -142,6 +151,15 @@ public class createContact2 extends Fragment {
         dataBaseHelper = new DataBaseHelper(getActivity().getApplicationContext());
         dataBaseHelper2 = new DataBaseHelper2(getActivity().getApplicationContext());
         dataBaseHelper3 = new DataBaseHelper3(getActivity().getApplicationContext());
+        if(!(dataBaseHelper3.getCount() == 0)){
+
+            //showProgressBar();
+            TextView userName = first.mHeaderView.findViewById(R.id.userName);
+            TextView userEmail = first.mHeaderView.findViewById(R.id.userEmail);
+            userName.setText(dataBaseHelper3.getUser().getName());
+            userEmail.setText(dataBaseHelper3.getUser().getEmail());
+            // hideProgressBar();
+        }
         gotoSaveLogs.setVisibility(View.GONE);
         cancel.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -149,7 +167,10 @@ public class createContact2 extends Fragment {
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        getActivity().finish();
+
+                                Intent i = new Intent(getActivity(),first.class);
+                                getActivity().startActivity(i);
+
                     }
                 });
 
@@ -165,6 +186,42 @@ public class createContact2 extends Fragment {
         btnCreateContact.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(mSingleAccountApp==null){
+                    PublicClientApplication.createSingleAccountPublicClientApplication(getActivity(), R.raw.auth_config_single_account,new IPublicClientApplication.ISingleAccountApplicationCreatedListener(){
+                        @Override
+                        public void onCreated(ISingleAccountPublicClientApplication application){
+
+                            if(getActivity() == null) Log.e("EMT","EMT");
+
+                            mSingleAccountApp = application;
+
+                            if(mSingleAccountApp!=null){
+                                Log.d("Tag","entereed againnn");
+                                loadAccount();
+
+
+                            }
+
+                        }
+                        @Override
+                        public void onError(MsalException exception){
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    hideProgressBar();
+                                    Log.d("TAG",exception.toString());
+
+
+                                    Toast.makeText(getActivity(),"error!please try again later!",Toast.LENGTH_LONG).show();
+                                    return;
+                                }
+                            });
+
+                            //  displayError(exception);
+
+                        }
+                    });
+                }
 
          if(dataBaseHelper3.getCount()!=1){
              Toast.makeText(getActivity(),"you need to sign in to perform this action.",Toast.LENGTH_LONG).show();
@@ -180,6 +237,7 @@ public class createContact2 extends Fragment {
                 //    String email_regex = "[A-Z]+[a-zA-Z_]+@\b([a-zA-Z]+.){2}\b?.[a-zA-Z]+";
                     String email_regex ="^[A-Za-z0-9+_.-]+@(.+)$";
                     if(!email.matches(email_regex)) {
+                        createStatus.setVisibility(View.VISIBLE);
                         createStatus.setTextColor(createContact2.this.getResources().getColor(R.color.red));
                         createStatus.setText("bad email format!");
                         return;
@@ -269,6 +327,7 @@ public class createContact2 extends Fragment {
                 client.newCall(request).enqueue(new Callback() {
                     @Override
                     public void onFailure(Call call, IOException e) {
+                        hideProgressBar();
                         Log.e("okhttp1",e.toString());
                         e.printStackTrace();
                     }
@@ -341,8 +400,16 @@ public class createContact2 extends Fragment {
                 client.newCall(request).enqueue(new Callback() {
                     @Override
                     public void onFailure(Call call, IOException e) {
-                        Log.e("okhttp1",e.toString());
-                        e.printStackTrace();
+                      getActivity().runOnUiThread(new Runnable() {
+                          @Override
+                          public void run() {
+                              hideProgressBar();
+                              Toast.makeText(getActivity(),"error creating this contact, please try again later!",Toast.LENGTH_LONG).show();
+                              Log.e("okhttp1",e.toString());
+                              e.printStackTrace();
+                          }
+                      });
+
                     }
 
                     @Override
@@ -354,8 +421,9 @@ public class createContact2 extends Fragment {
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-
-                                    progressbar.setVisibility(View.INVISIBLE);
+                                    hideProgressBar();
+                                    Toast.makeText(getActivity(),"error creating this contact, please try again later!",Toast.LENGTH_LONG).show();
+                                  //  progressbar.setVisibility(View.INVISIBLE);
                                     ETfirstname.setText("");
                                     ETlastname.setText("");
                                     ETcompany.setText("");
@@ -388,6 +456,7 @@ public class createContact2 extends Fragment {
                                     createStatus.setText("added success!");
                                     btnCreateContact.setText("saved!");
                                     hideProgressBar();
+                                    Log.d("mobilephone1",mobilephone.trim());
                                     addthisContactToDB(mobilephone);
 
                                 }
@@ -407,13 +476,14 @@ public class createContact2 extends Fragment {
 
     }
 
-    private void addthisContactToDB(String mobilephone) {
+    private void addthisContactToDB(String mobilephone11) {
+        mobilephone11 = mobilephone11.replace("+","%2B").trim();
 
 
         Toast.makeText(getActivity(), "adding contact to database....", Toast.LENGTH_LONG).show();
         //  URLline = "https://calleridfunction20220524032337.azurewebsites.net/api/ConnecttoD365?email="+mobilephone+"";
         //    URLline ="https://calleridfunction20220524032337.azurewebsites.net/api/ConnecttoD365?email=70753661";
-        URLline= "https://calleridcrmapi.azure-api.net/contacts?$filter=(mobilephone eq '"+mobilephone+"')";
+        URLline= "https://calleridcrmapi.azure-api.net/contacts?$filter=(mobilephone eq '"+mobilephone11+"')";
         StringRequest stringRequest = new StringRequest(Request.Method.GET,
                 URLline,
                 new com.android.volley.Response.Listener<String>() {
@@ -436,8 +506,9 @@ public class createContact2 extends Fragment {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         //displaying the error in toast if occurrs
+                        hideProgressBar();
                         Log.d("contactincrm",">>"+error.toString());
-
+                     //   Toast.makeText(getActivity(),"error creating contact ,"+error.toString(),Toast.LENGTH_LONG).show();
                         Toast.makeText(getActivity(), error.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -550,7 +621,7 @@ public class createContact2 extends Fragment {
                                 direction = "MISSED";
                                 directionBoolean = false;
                                 Log.d(String.valueOf(getActivity()),"durection value = INCOMING ->"+direction);
-                                Log.d(String.valueOf(getActivity()),"durection boolean = false ->"+directionBoolean);
+                             Log.d(String.valueOf(getActivity()),"durection boolean = false ->"+directionBoolean);
                                 break;
 
                             default:
@@ -637,6 +708,7 @@ public class createContact2 extends Fragment {
                 }, new com.android.volley.Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
+                        hideProgressBar();
                         // method to handle errors.
                         Toast.makeText(getContext(), "Fail to get response = " + error, Toast.LENGTH_LONG).show();
                         Log.e("creating error",error.getStackTrace().toString());
@@ -704,6 +776,8 @@ public class createContact2 extends Fragment {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         //displaying the error in toast if occurrs
+                        hideProgressBar();
+                        Toast.makeText(getActivity(),"error creating contact ,"+error.toString(),Toast.LENGTH_LONG).show();
                         //    Toast.makeText(getActivity(), error.getMessage(), Toast.LENGTH_SHORT).show();
                         Log.e("errroor",">>"+error.toString());
                     }
@@ -750,6 +824,127 @@ public class createContact2 extends Fragment {
         }
     }
 
+    private void loadAccount(){
+        if(mSingleAccountApp == null){
+            return;
+        }
+        mSingleAccountApp.getCurrentAccountAsync(new ISingleAccountPublicClientApplication.CurrentAccountCallback(){
+            @Override
+            public void onAccountLoaded(@Nullable IAccount activeAccount){
+                return;
+            }
+            //   showProgressBar();
+            //       mSingleAccountApp.acquireTokenSilentAsync(SCOPES, AUTHORITY, getAuthSilentCallback());
+
+
+
+            //is_signedin=true;
+            //   }
+            //  openBrowserTabActivity();
+
+
+
+            @Override
+            public void onAccountChanged(@Nullable IAccount priorAccount,@Nullable IAccount currentAccount){
+                if(currentAccount == null){
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            showProgressBar();
+                            dataBaseHelper3.deleteUser();
+                            if(dataBaseHelper.deleteDB()==0){
+                                Toast.makeText(getActivity(),"Account Changed!\nerror signing out,try again later",Toast.LENGTH_LONG).show();
+                                return;
+                            }
+
+                            performOperationOnSignOut();
+                        }
+                    });
+                    //      openBrowserTabActivity();
+                }
+            }
+            @Override
+            public void onError(@NonNull MsalException exception){
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        hideProgressBar();
+                        Toast.makeText(getActivity(),"error!try again later",Toast.LENGTH_LONG).show();
+                    }
+                });
+
+            }
+        });
+    }
+
+    private void performOperationOnSignOut() {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                hideProgressBar();
+                if (mSingleAccountApp == null){
+                    return;
+                }
+                mSingleAccountApp.signOut(new ISingleAccountPublicClientApplication.SignOutCallback() {
+                    @Override
+                    public void onSignOut() {
+                        if (first.navigationView != null) {
+                            Log.d("tTAG","should change the title");
+                            Menu menu = first.navigationView.getMenu();
+                            menu.findItem(R.id.nav_signin).setTitle("Sign in");
+                            first.navigationView.setEnabled(true);
+                            first.toolbar.setEnabled(true);
+                            // graphData.setText("");
+                            //menu.findItem(R.id.nav_pkg_manage).setVisible(false);//In case you want to remove menu item
+                            //  navigationView.setNavigationItemSelectedListener(getActivity());
+                        }
+
+                        performOperationOnSignOut();
+
+                    }
+                    @Override
+                    public void onError(@NonNull MsalException exception){
+                        hideProgressBar();
+
+                        Toast.makeText(getActivity(),"error!try again later!",Toast.LENGTH_LONG).show();
+                    }
+                });
+
+                if(dataBaseHelper3.deleteUser()==1) {
+                    if(dataBaseHelper.deleteDB()==0){
+                        Toast.makeText(getActivity(),"error signing out,try again later",Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    Toast.makeText(getActivity(),"signed out",Toast.LENGTH_LONG).show();
+                }else{
+                    Toast.makeText(getActivity(),"error signing out",Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                Menu menu = first.navigationView.getMenu();
+                menu.findItem(R.id.nav_signin).setTitle("Sign in");
+                menu.findItem(R.id.nav_updateDB).setVisible(false);
+                Toast.makeText(getActivity(),"please sign in",Toast.LENGTH_LONG).show();
+
+                final String signOutText = "Signed Out.";
+                TextView userName = first.mHeaderView.findViewById(R.id.userName);
+                TextView userEmail = first.mHeaderView.findViewById(R.id.userEmail);
+
+                userName.setText("username");
+                userEmail.setText("username@org.onmicrosoft.com");
+
+
+                Toast.makeText(getActivity(), signOutText, Toast.LENGTH_SHORT)
+                        .show();
+
+
+
+            }
+        });
+    }
+
+
+
     private void showProgressBar() {
 
         getActivity().findViewById(R.id.progressBar12)
@@ -760,9 +955,14 @@ public class createContact2 extends Fragment {
     }
 
     private void hideProgressBar() {
-
+getActivity().runOnUiThread(new Runnable() {
+    @Override
+    public void run() {
         getActivity().findViewById(R.id.progressBar12)
                 .setVisibility(View.GONE);
+    }
+});
+
     //        getActivity().findViewById(id.framCreateContact2)
     //            .setVisibility(View.VISIBLE);
     }

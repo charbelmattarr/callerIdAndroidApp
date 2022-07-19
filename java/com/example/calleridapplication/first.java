@@ -93,11 +93,12 @@ public class first extends AppCompatActivity implements NavigationView.OnNavigat
 
     String URL_GETALLCONTACTS = "https://getallcontacts20220530100450.azurewebsites.net/api/Function1?code=vQ39xN3XM4syuBk6ACNCDkUwpwAsS-EiiQi3Trc4028RAzFuOQbYKQ==";
     public static boolean isSignedIn = false;
-    NavigationView navigationView;
+    public static NavigationView navigationView;
     public static View mHeaderView;
     TextView signinStatus;
     TextView titles;
-    Toolbar toolbar;
+    public static Toolbar toolbar;
+    public static Menu menu;
     private static final String TAG = callReciever.class.getSimpleName();
      DrawerLayout drawerLayout ;
      ImageView dehaze;
@@ -166,7 +167,7 @@ public class first extends AppCompatActivity implements NavigationView.OnNavigat
             CallLogsAdapter.openCreate=false;
            String ids = bundle.getString("id").trim();
             Log.d("idinfirst",ids);
-
+            Log.d("open1","true");
             openCreateContactsFragment2(ids);
             return;
         }
@@ -176,9 +177,10 @@ public class first extends AppCompatActivity implements NavigationView.OnNavigat
               }
 
               if(ContactsAdapter.openContactFrag){
-
+                  Log.d("open2","true");
+                  ContactsAdapter.openContactFrag=false;
                 openContactFragment();
-              ContactsAdapter.openContactFrag=false;
+
       //  if(callReciever.openCreate){
       //      Log.d("using","openCreate");
 
@@ -187,14 +189,18 @@ public class first extends AppCompatActivity implements NavigationView.OnNavigat
               }
        // openCallLogsFragment();
         //  openSignInFragment();
-        if(com.example.calleridapplication.Window.found){
-            Log.d("using","window.found");
+        /*
+        if(Window.found){
+            Log.d("using","window.found"+Window.found);
             Window.found=false;
             openCreateContactsFragment();
                  return;
         }
 
+
+         */
            if(callReciever.openedOnNotFound){
+               callReciever.openedOnNotFound=false;
                Log.d("using","openedOnNotFound");
              firsttoCreate=true;
              openCreateContactsFragment();
@@ -202,6 +208,7 @@ public class first extends AppCompatActivity implements NavigationView.OnNavigat
    // callReciever.openedOnNotFound=false;
 
                  }
+
 
 /*
         PublicClientApplication.createSingleAccountPublicClientApplication(first.this, R.raw.auth_config_single_account,new IPublicClientApplication.ISingleAccountApplicationCreatedListener(){
@@ -233,16 +240,22 @@ public class first extends AppCompatActivity implements NavigationView.OnNavigat
 
             if (navigationView != null) {
                 Log.d("tTAG","should change the title");
-                Menu menu = navigationView.getMenu();
+                 menu = navigationView.getMenu();
                 menu.findItem(R.id.nav_signin).setTitle("Sign Out");
                 //menu.findItem(R.id.nav_pkg_manage).setVisible(false);//In case you want to remove menu item
                 //  navigationView.setNavigationItemSelectedListener(getActivity());
-                menu.add(R.id.nav_updateDB);
+                try{
+                    menu.findItem(R.id.nav_updateDB).setVisible(true);
+                  //  menu.add(R.id.nav_updateDB);
+                }catch(Exception e){
+                    Log.d("TAG","Exception :"+e.toString());
+                }
             }
         }else {
-            Menu menu = navigationView.getMenu();
+             menu = navigationView.getMenu();
             menu.findItem(R.id.nav_signin).setTitle("Sign In");
-            menu.removeItem(R.id.nav_updateDB);
+          //  menu.removeItem(R.id.nav_updateDB);
+            menu.findItem(R.id.nav_updateDB).setVisible(false);
         }
 
 
@@ -919,11 +932,10 @@ for(int i=0;i<countryCodeList.size();i++){
 
 
 
-
-       OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(50, TimeUnit.SECONDS)
-                .writeTimeout(50, TimeUnit.SECONDS)
-                .readTimeout(50, TimeUnit.SECONDS)
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(100, TimeUnit.SECONDS)
+                .writeTimeout(100, TimeUnit.SECONDS)
+                .readTimeout(100, TimeUnit.SECONDS)
                 .build();
 
         MediaType mediaType = MediaType.parse("application/json");
@@ -932,6 +944,7 @@ for(int i=0;i<countryCodeList.size();i++){
                 .url("https://calleridcrmapi.azure-api.net/contacts")
                 .header("Accept", "application/json")
                 .header("Content-Type", "application/json")
+                .header("filter","firstname DESC")
                // .get()
                 //.addHeader("Cookie", "ReqClientId=30c78179-6c3a-4708-8376-907a89493c54; last_commit_time=2022-05-31 12:54:18Z; orgId=8b7545a7-1d2b-48d7-be9d-832648fff0e3")
                 .build();
@@ -1084,12 +1097,13 @@ for(int i=0;i<countryCodeList.size();i++){
         JSONObject jsonObject = null;
         try {
             jsonObject = new JSONObject(response);
-            int size = 100;
+            int size = 500;
             //   if(jsonObject.getString("status").equals("true")){
             JSONArray callerid = jsonObject.getJSONArray("value");
-            for (int i = 0; i < callerid.length(); i++) {
-                Log.d("i->>", String.valueOf(i));
-            //      for (int i = 0; i < size; i++) {
+            //  for (int i = 0; i < callerid.length(); i++) {
+            for (int i = callerid.length()-1; i > callerid.length() - 501; i--) {
+             //    for (int i = 0; i < size; i++) {
+                     Log.d("i->>", String.valueOf(i));
                 //    String name,JobTitle,Company,etag,contactid;
                 JSONObject dataobj = callerid.getJSONObject(i);
                 firstname =dataobj.getString("firstname");

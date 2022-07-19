@@ -59,8 +59,18 @@ public class DataBaseHelper extends SQLiteOpenHelper {
        long insert= db.insert(CONTACT_TABLE,null,cv);
 
         if(insert == -1){
-            return false;
-        }else{
+            String updateQuery="UPDATE "+CONTACT_TABLE+" SET "+CONTACT_FNAME+"= \""+contact.getContact_fname()+"\", "+CONTACT_LNAME+"=\""+contact.getContact_lname()+"\" ,"+CONTACT_EMAIL+"=\""+contact.getContact_email()+"\","+CONTACT_MOBILEPHONE+"=\""+contact.getContact_mobilephone()+"\" WHERE "+CONTACT_ID+"=\""+contact.getContact_id()+"\"";
+            try (Cursor cursor = db.rawQuery(updateQuery,null)) {
+Log.d("error123","updatingDB");
+              return true;
+                }catch(Exception e){
+                Log.e("error112233",e.toString());
+
+                return false;
+        }
+            }else{
+            Log.e("error112233","new Contact added!");
+
             return true;
         }
 
@@ -108,7 +118,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
 
     public ContactModel fetchcontact(String number){
-        String queryString = "SELECT * FROM " +CONTACT_TABLE + " WHERE "+ CONTACT_MOBILEPHONE + " = "+ number + "";
+        String queryString = "SELECT * FROM " +CONTACT_TABLE + " WHERE "+ CONTACT_MOBILEPHONE + " ='"+ number + "'";
         //   String queryString = "SELECT * FROM " + CONTACT_TABLE + " WHERE "+ CONTACT_MOBILEPHONE + " = 70753661";
         SQLiteDatabase db = this.getReadableDatabase();
         ContactModel c = null;
@@ -177,7 +187,7 @@ public String getContactId(String email){
             Log.d("contact",">>>>>fouund");
 
              contactid = cursor.getString(0);
-
+            Log.d("contacct",contactid);
             cursor.close();
 
         }else{
@@ -195,7 +205,7 @@ public String getContactId(String email){
 
     public String getContactIdByPhone(String phone){
 
-        String queryString = "SELECT "+CONTACT_ID+" FROM " + CONTACT_TABLE + " WHERE "+ CONTACT_MOBILEPHONE + "="+phone+"";
+        String queryString = "SELECT "+CONTACT_ID+" FROM " + CONTACT_TABLE + " WHERE "+ CONTACT_MOBILEPHONE + "='"+phone+"'";
         SQLiteDatabase db = this.getReadableDatabase();
         String contactid = null;
         try (Cursor cursor = db.rawQuery(queryString,null)) {

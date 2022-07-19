@@ -1,5 +1,7 @@
 package com.example.calleridapplication;
 
+import android.app.Activity;
+import android.app.Notification;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
@@ -84,6 +86,7 @@ public class Window {
     private LayoutInflater layoutInflater;
     ListView emailList;
     static Boolean opened = false;
+    String Token="";
     static ContactModel contactFound = null;
     public static boolean closed = false;
     public static boolean found=false;
@@ -100,7 +103,7 @@ public class Window {
     LinearLayout bottomsheetWannabe;
     String[] EmailSubjects = {};
     String subject;
-    String AUTHORITY;
+    final static String AUTHORITY = "https://login.windows.net/common/oauth2/authorize?resource=https://api.businesscentral.dynamics.com";
     String name,JobTitle,Company,etag,email;
     ImageView dynamics;
     static String contactid;
@@ -228,7 +231,7 @@ public void close(){
             // invalidate the view
             //mView.invalidate();
             // remove all views
-
+            ForegroundService.notification = null;
             //((ViewGroup)mView.getParent()).removeAllViews();
 
             // the above steps are necessary when you are adding and removing
@@ -258,11 +261,12 @@ public void search4contactLocaly(String number){
     found =true;
         Log.d("window.found",String.valueOf(found));
         updateLayout2(contactFound.getContact_fname(),contactFound.getContact_lname(),contactFound.getContact_job(),contactFound.getContact_company());
-        openInApp.setVisibility(View.VISIBLE);
+
         openInApp.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                openApp(contactFound.getContact_id());
+            public void onClick(View v) {openCalllogsRelated(context,contactFound,Token);
+
+
             }
         });
    getTokenForGraph(contactFound.getContact_email());
@@ -278,8 +282,8 @@ public void search4contactLocaly(String number){
     }
 
     public void getTokenForGraph(String email){
-
-
+Toast.makeText(context,"getting emails...",Toast.LENGTH_LONG).show();
+Log.d("emaiiiilss","fetching emails");
         PublicClientApplication.createSingleAccountPublicClientApplication(context, R.raw.auth_config_single_account,new IPublicClientApplication.ISingleAccountApplicationCreatedListener(){
             @Override
             public void onCreated(ISingleAccountPublicClientApplication application){
@@ -287,16 +291,17 @@ public void search4contactLocaly(String number){
                 if(context == null) Log.e("EMT","EMT");
                 //showProgressBar();
                 mSingleAccountApp = application;
+                Log.d("loadaccouunt","in progress");
                 loadAccount(email);
             }
             @Override
             public void onError(MsalException exception){
-
+                Log.d("msalexce",exception.toString());
                 Toast.makeText(context,exception.toString(),Toast.LENGTH_LONG).show();
             }
         });
         // url = ("https://graph.microsoft.com/v1.0/me/messages?$filter=(from/emailAddress/address) eq 'charbel.mattar@javista.com'&$select=subject,body,receivedDateTime");
-        AUTHORITY = "https://graph.microsoft.com/v1.0/";
+
         //  signin_fragment.mSingleAccountApp.acquireTokenSilentAsync(SCOPES, AUTHORITY, getAuthSilentCallback());
 
        // getAuthSilentCallback(email);
@@ -318,7 +323,7 @@ public void search4contactLocaly(String number){
     }
 
 
-    private void getRecentEmails(String email) {
+    private void getRecentEmails(String email1122) {
         final List<Option> options = new LinkedList<>();
         // options.add(new QueryOption("search",
         //3.3     "mobilePhone:\""+number+"\""));
@@ -327,12 +332,17 @@ public void search4contactLocaly(String number){
         if(contactFound.getContact_email().isEmpty() ||contactFound.getContact_email().equals("null")){
             Toast.makeText(context,"you dont know the email of this person",Toast.LENGTH_LONG).show();
         }
+        if(email1122.isEmpty() ||email1122.equals("null") || email1122.equals("")){
+            Toast.makeText(context,"you dont know the email of this person",Toast.LENGTH_LONG).show();
+            emailList.setVisibility(View.GONE);
 
-
+            return;
+        }
         options.add(new QueryOption("filter",
-                "sentDateTime ge 2022-01-01T00:00:00Z and (from/emailAddress/address) eq '"+email+"'"));
-        options.add(new QueryOption("$orderby",
-                "sentDateTime DESC"));
+                "(from/emailAddress/address) eq '"+email1122+"'"));
+        options.add(new QueryOption("orderby",
+                "sentDateTime desc"));
+
         signin_fragment.graphClient
                 .me()
                 .messages()
@@ -342,36 +352,42 @@ public void search4contactLocaly(String number){
 
                     @Override
                     public void success(IMessageCollectionPage iMessageCollectionPage) {
-                        Log.d("response",iMessageCollectionPage.getRawObject().toString());
+                        Log.d("emails::",iMessageCollectionPage.getRawObject().toString());
 
-                      displayEmail(iMessageCollectionPage.getRawObject());
+                        displayEmail(iMessageCollectionPage.getRawObject());
 
                     }
 
                     @Override
                     public void failure(ClientException ex) {
-                        Log.d("error",ex.getMessage().toString());
+                        Log.d("errorEmail",ex.getMessage().toString());
                     }
                 });
+
+
 
     }
     private void displayEmail(JsonObject rawObject) {
 
-        List<EmailModel> Emails = new ArrayList<>();
-        EmailSubjects = new String[]{};
+
+        List<EmailModel> Emails= new ArrayList<>();
+        EmailModel emailsss = null;
         JsonArray emails = rawObject.getAsJsonArray("value");
 
         if(emails.size()==0){
             Emails = new ArrayList<>();
-            emailsss = new EmailModel("no emails","2");
+            emailsss = new EmailModel("no emails","");
+            Log.d("emails","no emails");
+
             Emails.add(emailsss);
             return;
         }
         for(int i =0 ;i<emails.size();i++){
-           
-        JsonObject dataObject = (JsonObject) emails.get(i);
 
-        subject = dataObject.get("subject").toString();
+            emailsss=null;
+            JsonObject dataObject = (JsonObject) emails.get(i);
+
+            String subject = dataObject.get("subject").toString().replaceAll("\"","").trim();
         /*dateFormat= new Date(Long.valueOf(callDate));
                     callDayTimes = String.valueOf(dateFormat);
                     //DateTimeFormatter dt = new DateTimeFormatterBuilder(dateFormat);
@@ -381,7 +397,15 @@ public void search4contactLocaly(String number){
                             "MM/dd/yyyy HH:mm:ss");
                     String dateString = formatter.format(new Date(Long
                             .parseLong(callDate)));*/
-        time = dataObject.get("sentDateTime").toString().replaceAll("\"","").trim();
+            String time = dataObject.get("sentDateTime").toString().replaceAll("\"","").trim();
+            String read = dataObject.get("isRead").toString().replaceAll("\"","").trim();
+            System.out.println("read"+read);
+            String body = dataObject.get("bodyPreview").toString().replaceAll("\"","").trim();
+           /* DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH);
+            DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd-MM-yyy HH:mm", Locale.ENGLISH);
+            LocalDate date = LocalDate.parse("2018-04-10T04:00:00.000Z", inputFormatter);
+            String formattedDate = outputFormatter.format(date);
+            System.out.println(formattedDate);*/
             try {
                 SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
                 SimpleDateFormat outputFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm aa");
@@ -392,19 +416,13 @@ public void search4contactLocaly(String number){
                 String dateString = outputFormat.format(date);
                 System.out.println(dateString);
                 Log.d("time",dateString);
-    /*  Date date = new Date(Long.valueOf(time));
-              SimpleDateFormat formatter = new SimpleDateFormat(
-                    "MM/dd/yyyy HH:mm:ss");
-            String dateString = formatter.format(new Date(Long
-                    .parseLong(String.valueOf(date))));
-            Log.d("unmodified","date: "+time);
-         Log.d("time",dateString);
-*/
-        emailsss = new EmailModel(subject,dateString);
-        Emails.add(emailsss);
+// public EmailModel(String subject, String time, Boolean read, String bodyPreview) {
+                System.out.println("Boolean.valueOf(read)"+Boolean.valueOf(read));
+                emailsss = new EmailModel(subject,dateString,Boolean.valueOf(read),body);
+                Emails.add(emailsss);
             } catch (ParseException e) {
                 e.printStackTrace();
-       }
+            }
         }
         loadListView(Emails);
 
@@ -414,29 +432,28 @@ public void search4contactLocaly(String number){
 
     private void loadListView(List<EmailModel> emailSubjects) {
 
+/** private Context context;
+ private View mView;
+ private final static String[] SCOPES = {"Files.Read","Mail.Read"};
+ private WindowManager.LayoutParams mParams;
+ private WindowManager mWindowManager;
+ private LayoutInflater layoutInflater;**/
 
-            new Handler(Looper.getMainLooper()).post(new Runnable() {
-                @Override
-                public void run() {
-                    emailList.setVisibility(View.VISIBLE);
-                 /*   if(emailSubjects.size()!=0){
-                    openInApp.setVisibility(View.VISIBLE);
-
-                    openInApp.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            openApp(contactFound.getContact_id());
-                        }
-                    });
-                    }*/
-                    ArrayAdapter itemsAdapter =
-                            new MailsAdapter(context, R.layout.mailsadapter_layout, emailSubjects);
-
-                    emailList.setAdapter(itemsAdapter);
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                ArrayAdapter itemsAdapter =
+                        new MailsAdapter(context, R.layout.mailsadapter_layout, emailSubjects);
+                emailList.setVisibility(View.VISIBLE);
+                emailList.setAdapter(itemsAdapter);
+                Helper.getListViewSize(emailList);
+            }
+        });
 
 
-                }
-            });
+
+
+
         }
 
 
@@ -528,7 +545,7 @@ public void search4contactLocaly(String number){
                    // updateLayout1(name,JobTitle,Company);
                     updateLayout2(name,lname, JobTitle,Company);
                   //  getRecentEmails (email);
-                    loadAccount(email);
+                    getTokenForGraph(contactFound.getContact_email());
                 }catch(JSONException e){
                     e.printStackTrace();
                     Log.e("TAG",e.getMessage().toString());
@@ -561,7 +578,7 @@ public void search4contactLocaly(String number){
         //  etagcaller.setText(etag);
 
     }
-    private void loadAccount(String email){
+    private void loadAccount(String email1){
         if(mSingleAccountApp == null){
             return;
         }
@@ -570,8 +587,9 @@ public void search4contactLocaly(String number){
             public void onAccountLoaded(@Nullable IAccount activeAccount){
                // updateUI(activeAccount);
                // if(!is_signedin){
-                    mSingleAccountApp.acquireTokenSilentAsync(SCOPES, AUTHORITY, getAuthSilentCallback2(email));
-                    is_signedin=true;
+                    mSingleAccountApp.acquireTokenSilentAsync(SCOPES, AUTHORITY, getAuthSilentCallback2(email1));
+
+
                    // newSign=true;
               //  }
                 //  openBrowserTabActivity();
@@ -602,7 +620,7 @@ public void search4contactLocaly(String number){
             }
             @Override
             public void onError(MsalException exception) {
-                Log.d("TAG", "Authentication failed: " + exception.toString());
+                Log.d("TAG", "Authentication failed: " + exception.toString() + exception.getMessage().toString());
 
             }
         };
@@ -610,7 +628,9 @@ public void search4contactLocaly(String number){
     private void callGraphAPI(IAuthenticationResult authenticationResult,String emails) {
         //GraphHelper graphHelper= GraphHelper.getInstance();
         //   graphHelper.get
-        final String accessToken = authenticationResult.getAccessToken();
+        Token = authenticationResult.getAccessToken();
+        openInApp.setVisibility(View.VISIBLE);
+
         final List<Option> options = new LinkedList<>();
         // options.add(new QueryOption("search",
         //3.3     "mobilePhone:\""+number+"\""));
@@ -633,8 +653,8 @@ public void search4contactLocaly(String number){
                             @Override
                             public void authenticateRequest(IHttpRequest request) {
                                 Log.d("TAG", "Authenticating request," + request.getRequestUrl());
-                                request.addHeader("Authorization", "Bearer " + accessToken);
-                                Log.d("token is", accessToken);
+                                request.addHeader("Authorization", "Bearer " +Token);
+                                Log.d("token is", Token);
                             }
                         })
                         .buildClient();
@@ -660,7 +680,14 @@ public void search4contactLocaly(String number){
                 });
     }
 
-
+    public void openCalllogsRelated(Context ctx,ContactModel c,String Token){
+        Intent i = new Intent(ctx,relatedCallLogs.class);
+        Log.d("opening",c.getContact_fname()+""+c.getContact_lname());
+        Log.d("idinadapter",c.getContact_id());
+        i.putExtra("id",c.getContact_id());
+        i.putExtra("token",Token);
+        ctx.startActivity(i);
+    }
     public void goToDynamics(){
         if(contactFound.getContact_id().isEmpty() || contactFound.getContact_id().equals("")){
             Toast.makeText(context,"page not found!",Toast.LENGTH_LONG).show();

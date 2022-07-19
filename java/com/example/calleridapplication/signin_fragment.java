@@ -2,6 +2,7 @@ package com.example.calleridapplication;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
@@ -84,6 +85,7 @@ public class signin_fragment extends Fragment {
     DataBaseHelper3 dataBaseHelper3;
     DataBaseHelper dataBaseHelper;
     JsonObject DRIVEJSON;
+    TextView graphData;
     public static String displayName=null;
     Boolean getgraph=false;
     //int signed=0;
@@ -153,16 +155,21 @@ public class signin_fragment extends Fragment {
                             signOutButton.setVisibility(View.VISIBLE);
 
                             if (navigationView != null) {
+                                navigationView = (NavigationView)first.navigationView;
                                 Log.d("tTAG","should change the title");
                                 Menu menu = navigationView.getMenu();
-                                menu.findItem(R.id.nav_signin).setTitle("Sign Out");
-
+                                menu.findItem(R.id.nav_signin).setTitle("Sign out");
+                                menu.findItem(R.id.nav_updateDB).setVisible(true);
                                 //menu.findItem(R.id.nav_pkg_manage).setVisible(false);//In case you want to remove menu item
                               //  navigationView.setNavigationItemSelectedListener(getActivity());
                             }
                         return;
 
                     }else {
+                     //   navigationView = (NavigationView)view.findViewById(R.id.NavigationView);
+                        Menu menu = navigationView.getMenu();
+                        menu.findItem(R.id.nav_signin).setTitle("Sign in");
+                        menu.findItem(R.id.nav_updateDB).setVisible(false);
                         Toast.makeText(getActivity(),"please sign in",Toast.LENGTH_LONG).show();
 
                     }
@@ -194,6 +201,7 @@ public class signin_fragment extends Fragment {
             }
             @Override
             public void onError(@NonNull MsalException exception){
+                hideProgressBar();
                 displayError(exception);
             }
         });
@@ -224,7 +232,7 @@ public class signin_fragment extends Fragment {
                 is_signedin=false;
                 /* Update UI */
                 updateUI(authenticationResult.getAccount());
-                uploadContacts();
+
                 /* call graph */
                 callGraphAPI(authenticationResult);
             }
@@ -250,12 +258,12 @@ public class signin_fragment extends Fragment {
 
     private void uploadContacts() {
 
-
+               showProgressBar();
 
         OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(50, TimeUnit.SECONDS)
-                .writeTimeout(50, TimeUnit.SECONDS)
-                .readTimeout(50, TimeUnit.SECONDS)
+                .connectTimeout(100, TimeUnit.SECONDS)
+                .writeTimeout(100, TimeUnit.SECONDS)
+                .readTimeout(100, TimeUnit.SECONDS)
                 .build();
 
         MediaType mediaType = MediaType.parse("application/json");
@@ -270,6 +278,8 @@ public class signin_fragment extends Fragment {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
+                hideProgressBar();
+                Toast.makeText(getActivity(),"error uploading data , please try again later \n"+e.toString(),Toast.LENGTH_LONG).show();
                 Log.e("okhttp1",e.toString());
                 e.printStackTrace();
             }
@@ -277,17 +287,42 @@ public class signin_fragment extends Fragment {
             @Override
             public void onResponse(Call call, okhttp3.Response response) throws IOException {
                 if (!response.isSuccessful()) {
-                    String responseBody = response.body().string();
-                    Log.e("okhttp2",responseBody);
-                    hideProgressBar();
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            String responseBody = null;
+                            try {
+                                responseBody = response.body().string();
+
+                            Log.d("strr->>0",responseBody);
+
+                            Log.e("okhttp2",responseBody);
+                            hideProgressBar();
+                            Toast.makeText(getActivity(),"error uploading data , please try again later \n"+response.toString(),Toast.LENGTH_LONG).show();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
                     //Toast.makeText(first.this,"not successful:"+responseBody,Toast.LENGTH_LONG).show();
 
                     throw new IOException("Unexpected code " + response);
                 }else {
-                    String responseBody = response.body().string();
-                    Log.d("strr->>0",responseBody);
-                    parseJSON(responseBody);
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            String responseBody = "";
 
+                                responseBody = response.body().toString();
+                                Log.d("strr->>0",responseBody);
+                                parseJSON(responseBody);
+                             //   Toast.makeText(getActivity(),"error uploading data , please try again later \n"+response.toString(),Toast.LENGTH_LONG).show();
+
+
+                        }
+                    });
+
+                   // hideProgressBar();
                 }
             }
 
@@ -300,12 +335,13 @@ public class signin_fragment extends Fragment {
         JSONObject jsonObject = null;
         try {
             jsonObject = new JSONObject(response);
-            int size = 100;
+            int size = 300;
             //   if(jsonObject.getString("status").equals("true")){
             JSONArray callerid = jsonObject.getJSONArray("value");
-            for (int i = 0; i < callerid.length(); i++) {
-                Log.d("i->>", String.valueOf(i));
-                //      for (int i = 0; i < size; i++) {
+            //  for (int i = 0; i < callerid.length(); i++) {
+
+                     for (int i = 0; i < size; i++) {
+                         Log.d("i->>", String.valueOf(i));
                 //    String name,JobTitle,Company,etag,contactid;
                 JSONObject dataobj = callerid.getJSONObject(i);
                 firstname =dataobj.getString("firstname");
@@ -326,6 +362,9 @@ public class signin_fragment extends Fragment {
             e.printStackTrace();
             hideProgressBar();
         }
+        first.navigationView.setEnabled(true);
+        first.toolbar.setEnabled(true);
+        graphData.setText("Your account is fully Loaded!\nWelcome "+dataBaseHelper3.getUser().getName()+". ");
         Log.d("stopppped...","updating");
         hideProgressBar();
     }
@@ -335,6 +374,7 @@ public class signin_fragment extends Fragment {
             public void onSuccess(IAuthenticationResult authenticationResult) {
                 Log.d("TAG", "Successfully authenticated");
                 // is_signedin=true;
+
                 callGraphAPI(authenticationResult);
             }
             @Override
@@ -371,7 +411,7 @@ public class signin_fragment extends Fragment {
                             }
                         })
                         .buildClient();
-        graphClient
+      try{  graphClient
                 .me()
                 .drive()
                 .buildRequest()
@@ -391,7 +431,10 @@ public class signin_fragment extends Fragment {
                         displayError(ex);
                     }
                 });
-    }
+      }catch(Exception e){
+          Log.d("exepttt",e.toString());
+      }
+      }
 
 
 
@@ -413,14 +456,46 @@ public class signin_fragment extends Fragment {
             callGraphApiSilentButton.setEnabled(true);
             currentUserTextView.setText(account.getUsername());
             Email = account.getUsername();
+            Menu menu = navigationView.getMenu();
+            menu.findItem(R.id.nav_signin).setTitle("Sign out");
+            menu.findItem(R.id.nav_updateDB).setVisible(true);
+            if(!Email.contains("crazyphonelb")){
+                signInButton.setEnabled(true);
+                signOutButton.setEnabled(false);
+
+                callGraphApiInteractiveButton.setEnabled(false);
+                callGraphApiSilentButton.setEnabled(false);
+                currentUserTextView.setText("");
+                logTextView.setText("");
+                is_signedin=false;
+                 menu = navigationView.getMenu();
+                menu.findItem(R.id.nav_signin).setTitle("Sign in");
+                menu.findItem(R.id.nav_updateDB).setVisible(false);
+                dataBaseHelper3.deleteUser();
+                dataBaseHelper.deleteDB();
+                Thread thread = new Thread(new Runnable() {
+
+                    @Override
+                    public void run() {   signout();
+                    }
+                });
+
+
+                thread.start();
+
+            }
         } else {
             signInButton.setEnabled(true);
             signOutButton.setEnabled(false);
+
             callGraphApiInteractiveButton.setEnabled(false);
             callGraphApiSilentButton.setEnabled(false);
             currentUserTextView.setText("");
             logTextView.setText("");
             is_signedin=false;
+            Menu menu = navigationView.getMenu();
+            menu.findItem(R.id.nav_signin).setTitle("Sign in");
+            menu.findItem(R.id.nav_updateDB).setVisible(false);
         }
 
         //Sign in user
@@ -429,7 +504,35 @@ public class signin_fragment extends Fragment {
         //   });
 
     }
+public void signout(){
 
+            try  {  if (mSingleAccountApp == null){
+                return;
+            }
+                mSingleAccountApp.signOut(new ISingleAccountPublicClientApplication.SignOutCallback() {
+                    @Override
+                    public void onSignOut() {
+
+                            updateUI(null);
+                            Intent i = new Intent(getActivity(),first.class);
+                            getActivity().startActivity(i);
+                            Toast.makeText(getActivity(),"account does not belong to the organisaton!\ntry signing in again using another account.",Toast.LENGTH_LONG).show();
+
+
+                    }
+
+                    @Override
+                    public void onError(@NonNull MsalException exception) {
+                        return;
+
+                    }
+                });
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+}
     private void displayError(@NonNull final Exception exception) {
        Log.d("error",exception.toString());
         /*  getActivity().runOnUiThread(new Runnable() {
@@ -478,6 +581,7 @@ public class signin_fragment extends Fragment {
                             Log.d("user","added successfully");
                         }
                         if (navigationView != null) {
+
                             Menu menu = navigationView.getMenu();
                             menu.findItem(R.id.nav_signin).setTitle("Sign Out");
 
@@ -486,6 +590,8 @@ public class signin_fragment extends Fragment {
                         }
                         userName.setText(displayName);
                         userEmail.setText(Email);
+
+                        uploadContacts();
                         hideProgressBar();
                         //Sign in user
 
@@ -521,6 +627,12 @@ public class signin_fragment extends Fragment {
             Toast.makeText(getActivity(),"error signing out",Toast.LENGTH_LONG).show();
             return;
         }
+
+        Menu menu = navigationView.getMenu();
+        menu.findItem(R.id.nav_signin).setTitle("Sign in");
+        menu.findItem(R.id.nav_updateDB).setVisible(false);
+        Toast.makeText(getActivity(),"please sign in",Toast.LENGTH_LONG).show();
+        graphData.setText("");
         signInButton.setVisibility(View.VISIBLE);
         signOutButton.setVisibility(View.GONE);
         signInButton.setEnabled(true);
@@ -547,12 +659,17 @@ public class signin_fragment extends Fragment {
         // Inflate the layout for this fragment
         is_signedin=false;
         view = inflater.inflate(R.layout.fragment_signin_fragment, container, false);
+        navigationView = (NavigationView)first.navigationView;
+        graphData = (TextView)view.findViewById(R.id.graphData);
         if(view == null)Log.e("EMT VW","EMT VIEW");
-         navigationView = (NavigationView)view.findViewById(R.id.NavigationView);
+        graphData.setText("");
         initializeUI();
         fetchButtonClicks(view);
         dataBaseHelper3 = new DataBaseHelper3(getActivity());
         dataBaseHelper = new DataBaseHelper(getActivity());
+        if(dataBaseHelper3.getCount()==1){
+            graphData.setText("Welcome "+dataBaseHelper3.getUser().getName());
+        }
         if(mSingleAccountApp==null){
         PublicClientApplication.createSingleAccountPublicClientApplication(getActivity(), R.raw.auth_config_single_account,new IPublicClientApplication.ISingleAccountApplicationCreatedListener(){
             @Override
@@ -572,6 +689,7 @@ public class signin_fragment extends Fragment {
             }
             @Override
             public void onError(MsalException exception){
+                hideProgressBar();
                 Log.d("TAG",exception.toString());
                 displayError(exception);
 
@@ -607,6 +725,9 @@ public class signin_fragment extends Fragment {
                 if (mSingleAccountApp == null) {
                     return;
                 }
+                first.navigationView.setEnabled(false);
+                first.toolbar.setEnabled(false);
+                graphData.setText("Please wait untill your account is loaded.");
                 mSingleAccountApp.signIn(getActivity(), null, SCOPES, getAuthInteractiveCallback());
 
                 newSign=true;
@@ -628,7 +749,10 @@ public class signin_fragment extends Fragment {
                             Log.d("tTAG","should change the title");
                             Menu menu = navigationView.getMenu();
                             menu.findItem(R.id.nav_signin).setTitle("Sign in");
-
+                            first.navigationView.setEnabled(true);
+                            first.toolbar.setEnabled(true);
+                            graphData.setText("");
+                            dataBaseHelper3.deleteUser();
                             //menu.findItem(R.id.nav_pkg_manage).setVisible(false);//In case you want to remove menu item
                             //  navigationView.setNavigationItemSelectedListener(getActivity());
                         }
@@ -638,9 +762,13 @@ public class signin_fragment extends Fragment {
                         updateUI(null);
                         performOperationOnSignOut();
                         newSign=false;
+                        Intent i = new Intent(getActivity(),first.class);
+                        getActivity().startActivity(i);
                     }
                     @Override
                     public void onError(@NonNull MsalException exception){
+                        hideProgressBar();
+
                         displayError(exception);
                     }
                 });
@@ -670,23 +798,36 @@ public class signin_fragment extends Fragment {
         });
     }
     private void showProgressBar() {
-
+getActivity().runOnUiThread(new Runnable() {
+    @Override
+    public void run() {
         getActivity().findViewById(R.id.progressSignIn)
                 .setVisibility(View.VISIBLE);
         getActivity().findViewById(R.id.FrameSignIn)
                 .setEnabled(false);
         getActivity().findViewById(R.id.FrameSignIn)
                 .setVisibility(View.INVISIBLE);
+    }
+});
+
+
 
     }
 
     private void hideProgressBar() {
-
+getActivity().runOnUiThread(new Runnable() {
+    @Override
+    public void run() {
         getActivity().findViewById(R.id.progressSignIn)
                 .setVisibility(View.GONE);
         getActivity().findViewById(R.id.FrameSignIn)
                 .setEnabled(true);
+        first.navigationView.setEnabled(false);
+
         getActivity().findViewById(R.id.FrameSignIn)
                 .setVisibility(View.VISIBLE);
+
     }
+});
+            }
 }

@@ -43,6 +43,7 @@ public class ContactsAdapter extends ArrayAdapter<ContactModel> {
         TextView phonenbre;
         ImageView next;
         ImageButton delete;
+        TextView email;
     }
 
     public ContactsAdapter(Context context, int resource, List<ContactModel> contacts) {
@@ -71,6 +72,7 @@ public class ContactsAdapter extends ArrayAdapter<ContactModel> {
             holder.phonenbre= convertView.findViewById(R.id.phonenbre);
             holder.next = convertView.findViewById(R.id.next);
             holder.delete =convertView.findViewById(R.id.delete);
+            holder.email = convertView.findViewById(R.id.email);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
@@ -87,8 +89,8 @@ public class ContactsAdapter extends ArrayAdapter<ContactModel> {
         if(getItem(position).getContact_company().equals("null")){
             holder.company.setVisibility(View.GONE);
         }
-
-
+if(!getItem(position).getContact_email().equals("") &&  !getItem(position).getContact_email().equals("null"))
+           holder.email.setText(getItem(position).getContact_email());
        holder.next.setOnClickListener(new View.OnClickListener() {
            @Override
            public void onClick(View v) {
@@ -169,6 +171,7 @@ public class ContactsAdapter extends ArrayAdapter<ContactModel> {
         Log.d("opening",c.getContact_fname()+""+c.getContact_lname());
        Log.d("idinadapter",c.getContact_id());
         i.putExtra("id",c.getContact_id());
+        i.putExtra("token","");
         ctx.startActivity(i);
    }
     // Convert Graph's DateTimeTimeZone format to

@@ -66,6 +66,10 @@ public class callReciever extends BroadcastReceiver {
             Log.d("TAG","phoone out"+number);
         }
 
+if(!number.contains("+961") && !number.contains("+")){
+  String ninesixone = "+961";
+    number = ninesixone.concat(number);
+}
         open = true;
          ctx = context;
          dt = new DataBaseHelper(context);
@@ -150,7 +154,7 @@ public class callReciever extends BroadcastReceiver {
                     contactfound =dt.fetchcontact(numbertofetch);
                     Log.d("numbertofetch",numbertofetch);
                     Log.d("cl->>",contactfound.toString());
-                }
+
 Log.d("logs","we will be adding the logs to database later");
              //   addLogToDB2(context);
                 Log.d("steps","call ended");
@@ -161,24 +165,26 @@ Log.d("logs","we will be adding the logs to database later");
                     numbertocreate = number;
                     System.out.println("closed->"+Window.closed);
                     if(!numbertocreate.equals("null")){
-                        if(Window.closed){
-                            System.out.println("closed->"+Window.closed);
-                            Window.closed = false;
-                            return;
-                        }
+                        //if(Window.closed){
+                        //    //System.out.println("closed->"+Window.closed);
+                        //    Window.closed = false;
+                        //    return;
+                     //   }
                     openAppTocreate(context,number);
+                    return;
                     }
                 }else {
                     if(!number.equals("null")){
                     Log.d("cl->>",contactfound.toString());
                     System.out.println("closed->"+Window.closed);
-                    if(Window.closed){
-                        System.out.println("closed->"+Window.closed);
-                        Window.closed = false;
-                        return;
-                    }  }
-                    openpopUpService( context,number);
-
+                 //   if(Window.closed){
+                //        System.out.println("closed->"+Window.closed);
+                 //       Window.closed = false;
+                //        return;
+                //    }
+                    }    openpopUpService( context,number);
+                          return;
+                }
                 }
              /*
 
@@ -269,7 +275,8 @@ Log.d("logs","we will be adding the logs to database later");
                     String stringType;
                     try{
                         stringType = c.getString(c.getColumnIndexOrThrow(CallLog.Calls.TYPE));
-                        Toast.makeText(ctx,stringType,Toast.LENGTH_LONG).show();
+                   //
+                        //     Toast.makeText(ctx,stringType,Toast.LENGTH_LONG).show();
                         switch (stringType) {
                             case "2":
                                 direction = "OUTGOING";
@@ -312,9 +319,9 @@ Log.d("logs","we will be adding the logs to database later");
                         Log.d("dateString",dateString);
                     CallLogs cl =new CallLogs(callDuration,String.valueOf(directionBoolean),dateString,phNumber,"false",contactid);
                     if(dt2.addOne(cl)){
-                        showToast(ctx,"success");
+               //         showToast(ctx,"success");
                     }else{
-                        showToast(ctx,"unsuccessful");
+                //        showToast(ctx,"unsuccessful");
                     }
                 }
             }
@@ -669,7 +676,7 @@ public boolean check_if_number_isEmpty(String nbre){
 
                       //  c.moveToPrevious(); // if you used moveToFirst() for first logs, you should this line to moveToNext
 
-                        Toast.makeText(ctx, phNumber + callDuration + callDayTimes + direction, Toast.LENGTH_SHORT).show(); // you can use strings in this line
+                      //  Toast.makeText(ctx, phNumber + callDuration + callDayTimes + direction, Toast.LENGTH_SHORT).show(); // you can use strings in this line
 
                     }
                 }

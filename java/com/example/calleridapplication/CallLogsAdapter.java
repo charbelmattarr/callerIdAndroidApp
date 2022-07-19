@@ -134,6 +134,9 @@ if(calllog.getSubject().equals("")){
             holder.isSaved.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    if(calllog.getCallerid()==""|| calllog.getCallerid().isEmpty()){
+                        return;
+                    }
                     openCRM(getItem(position).getCallerid());
                 }
             });
