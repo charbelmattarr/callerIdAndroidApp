@@ -2,9 +2,12 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     tools:showIn="navigation_view"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+
 
     >
-<group android:checkableBehavior="single">
+<group android:checkableBehavior="single"
+  >
    <!-- <item android:id="@+id/mainFragment"
         android:title="HOME"
         />-->
@@ -18,6 +21,7 @@
     <item android:id="@+id/phonecalls"
         android:icon="@drawable/ic_baseline_local_phone_24"
         android:title="Phone calls"/>
+
     <item android:id="@+id/nav_signin"
         android:icon="@drawable/ic_sign_in"
         android:title="Sign In"/>

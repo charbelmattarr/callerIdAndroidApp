@@ -130,12 +130,17 @@
 
                 android:text="-"/>
 
-        </LinearLayout>
+
+
+      </LinearLayout>
 
 
         </LinearLayout>
 
-
+        <ListView
+            android:id="@+id/emailList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -145,10 +150,6 @@
             android:id="@+id/fetchEmails1"
             android:layout_gravity="center"/>
 
-        <ListView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/emailList"/>
         <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
@@ -158,7 +159,7 @@
                 android:id="@+id/openinapp"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
-
+                android:textColor="@color/white"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentRight="true"
                 android:layout_marginLeft="50dp"
